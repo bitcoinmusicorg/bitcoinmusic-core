@@ -7,10 +7,10 @@
 #define BTCM_BLOCKCHAIN_VERSION              ( version(0, 0, 1) )
 #define BTCM_BLOCKCHAIN_HARDFORK_VERSION     ( hardfork_version( BTCM_BLOCKCHAIN_VERSION ) )
 
-#define BTCM_INIT_PUBLIC_KEY_STR             "BTCM75fnamVHSMV67JaRPSKbCr8vDwGoCEDeDky8e78JJbNEYcbqv1"
-#define BTCM_CHAIN_ID                        (fc::sha256::hash("BitcoinMusic main chain"))
-#define BASE_SYMBOL                          "BTCM"
-#define BTCM_ADDRESS_PREFIX                  "BTCM"
+#define BTCM_INIT_PUBLIC_KEY_STR             "BTST75fnamVHSMV67JaRPSKbCr8vDwGoCEDeDky8e78JJbNEYcbqv1"
+#define BTCM_CHAIN_ID                        (fc::sha256::hash("BitcoinMusic TEST chain"))
+#define BASE_SYMBOL                          "BTST"
+#define BTCM_ADDRESS_PREFIX                  "BTST"
 #define BTCM_SYMBOL_STRING   (BASE_SYMBOL)
 #define VESTS_SYMBOL_STRING   "VESTS"
 #define MBD_SYMBOL_STRING     "MBD"

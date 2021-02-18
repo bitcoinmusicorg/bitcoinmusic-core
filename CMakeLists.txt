@@ -1,7 +1,7 @@
 project( BTCM_0_1 )
 cmake_minimum_required( VERSION 2.8.12 )
 
-set( BLOCKCHAIN_NAME "Bitcoin Music" )
+set( BLOCKCHAIN_NAME "Bitcoin Music Testnet" )
 
 set( GUI_CLIENT_EXECUTABLE_NAME BTCM )
 set( CUSTOM_URL_SCHEME "gcs" )

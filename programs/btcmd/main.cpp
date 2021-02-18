@@ -52,15 +52,15 @@ int main(int argc, char** argv) {
    try {
 
       std::cerr << "------------------------------------------------------\n\n";
-      std::cerr << "            STARTING Bitcoin Music NETWORK\n\n";
+      std::cerr << "            STARTING Bitcoin Music TEST NETWORK\n\n";
       std::cerr << "------------------------------------------------------\n";
       std::cerr << "initminer public key: " << BTCM_INIT_PUBLIC_KEY_STR << "\n";
       std::cerr << "chain id: " << std::string(BTCM_CHAIN_ID) << "\n";
       std::cerr << "version: " << graphene::utilities::git_revision_description << "\n";
       std::cerr << "------------------------------------------------------\n";
 
-      bpo::options_description app_options("Bitcoin Music Daemon");
-      bpo::options_description cfg_options("Bitcoin Music Daemon");
+      bpo::options_description app_options("Bitcoin Music TEST Daemon");
+      bpo::options_description cfg_options("Bitcoin Music TEST Daemon");
       app_options.add_options()
             ("help,h", "Print this help message and exit.")
             ("data-dir,d", bpo::value<boost::filesystem::path>()->default_value("witness_node_data_dir"), "Directory containing databases, configuration file, etc.")
