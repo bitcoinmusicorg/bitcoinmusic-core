@@ -1,8 +1,15 @@
 {
     "initial_accounts": [
-        {"name":"peertracks","owner_key":"BTCM...","active_key":"BTCM..."}
+        {"name":"peter","owner_key":"BTST5jVzrA9yxB34z3jhyDY8HmStp4Z51JMFCwJBh573gygvFcdK9K","active_key":"BTST6HtYiumWN6RAPcRuJNF5otbNPfsxmUektqVoStWc8Pdt7a59yE"},
+        {"name":"shenoy","owner_key":"BTST6cTP9DTm8ynzxbXYN3aV2EtGvEopyLA5dqEyi6YXwjnpyG8X59","active_key":"BTST5i9sFysBNKqbmxxVm33mEV2RvNB5LpJxS7XoW2mUU3RzXmuJfu"}
     ],
     "initial_balances": [
-        {"owner":"BTCM...","asset_symbol":"BTCM","amount":"21000000000000"}
+        {"owner":"shenoy","amount":"20000000000000"},
+        {"owner":"peter","amount":"500000000000"},
+        {"owner":"BTSTBc45GaGfscp1NMRxqHcV4brc4UwA62FE1","amount":"100000000000"},
+        {"owner":"BTSTJ9CGnoQof5gv3w8bKoQkjX4rsFeyuzj5Y","amount":"100000000000"},
+        {"owner":"BTSTKyhqtMkcJ4ZdAXaGNTLSUthgq48xkriBe","amount":"100000000000"},
+        {"owner":"BTST8krTpZNyHjNcksYs4RcaqTax33WWi8Aoa","amount":"100000000000"},
+        {"owner":"BTSTE9Kn1Mceu6iuaoSXhriyBoNK4FA8nWMBi","amount":"100000000000"}
     ]
 }
