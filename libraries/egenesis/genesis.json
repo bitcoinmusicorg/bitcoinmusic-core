@@ -1,0 +1,8 @@
+{
+    "initial_accounts": [
+        {"name":"peertracks","owner_key":"BTCM...","active_key":"BTCM..."}
+    ],
+    "initial_balances": [
+        {"owner":"BTCM...","asset_symbol":"BTCM","amount":"21000000000000"}
+    ]
+}
