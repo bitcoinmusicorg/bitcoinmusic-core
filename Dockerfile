@@ -54,14 +54,14 @@ RUN \
       git submodule sync --recursive ) && \
     git submodule update --init --recursive && \
     mkdir -p _build && \
-    pushd _build && \
+    cd _build && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
         .. && \
     make btcmd cli_wallet get_dev_key && \
     install -s programs/btcmd/btcmd programs/cli_wallet/cli_wallet programs/util/get_dev_key /usr/local/bin && \
-    popd && \
-    install -d /etc/btcm && \
+    cd .. && \
+    install -d /etc/BTCM && \
     install -m 0644 Docker/config.ini /etc/BTCM/ && \
     install -m 0755 Docker/entrypoint.sh / && \
     #
