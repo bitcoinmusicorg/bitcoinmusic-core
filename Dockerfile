@@ -66,7 +66,7 @@ RUN \
     make btcmd cli_wallet get_dev_key && \
     install -s programs/btcmd/btcmd programs/cli_wallet/cli_wallet programs/util/get_dev_key /usr/local/bin && \
     cd .. && \
-    install -d /etc/btcm && \
+    install -d /etc/BTCM && \
     install -m 0644 Docker/config.ini /etc/BTCM/ && \
     install -m 0755 Docker/entrypoint.sh / && \
     #
