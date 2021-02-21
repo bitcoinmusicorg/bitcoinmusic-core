@@ -1084,14 +1084,19 @@ public:
       return _remote_db->get_uia_balances( account );  
    }
 
-   annotated_signed_transaction create_asset(string issuer, string asset_name, string description, uint64_t max_supply, bool broadcast)
+   annotated_signed_transaction create_asset(string issuer, string asset_name, string description,
+                                             uint8_t precision, uint64_t max_supply, bool broadcast)
    {
       try {
          account_object issuer_account = get_account( issuer );
          FC_ASSERT(!find_asset(asset_name).valid(), "Asset with that symbol already exists!");
          asset_create_operation create_op;
+         create_op.fee = asset( asset_name.find( '.' ) != std::string::npos
+                                    ? BTCM_SUBASSET_CREATION_FEE : BTCM_ASSET_CREATION_FEE,
+                                BTCM_SYMBOL );
          create_op.issuer = issuer_account.name;
          create_op.symbol = asset_name;
+         create_op.precision = precision;
          create_op.common_options.max_supply=max_supply;
          create_op.common_options.flags=override_authority|disable_confidential;
          signed_transaction tx;
@@ -2645,9 +2650,9 @@ uint64_t wallet_api::get_content_scoring( string content )
    return my->_remote_db->get_content_scoring(content);
 }
 
-annotated_signed_transaction wallet_api::create_asset(string issuer, string asset_name, string description, uint64_t max_supply, bool broadcast)
+annotated_signed_transaction wallet_api::create_asset(string issuer, string asset_name, string description, uint8_t precision, uint64_t max_supply, bool broadcast)
 {
-   return my->create_asset(issuer, asset_name, description, max_supply, broadcast); 
+   return my->create_asset(issuer, asset_name, description, precision, max_supply, broadcast);
 }
 
 annotated_signed_transaction wallet_api::issue_asset(string asset_name, string to_account, string amount, bool broadcast)
