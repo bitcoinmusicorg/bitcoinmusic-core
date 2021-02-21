@@ -880,14 +880,16 @@ class wallet_api
       uint64_t get_content_scoring( string content );
 
       /**
-       * Create a new UIA with 6 digits precision
+       * Create a new UIA
        * @param issuer Account name used for creating the asset
        * @param asset_name Unique asset name
        * @param description Description
+       * @param precision how many decimals the asset should support
        * @param max_supply Maximum supply (in satoshis!)
        * @param broadcast Broadcast the transaction?
        */
-      annotated_signed_transaction create_asset(string issuer, string asset_name, string description, uint64_t max_supply, bool broadcast);
+      annotated_signed_transaction create_asset(string issuer, string asset_name, string description,
+                                                uint8_t precision, uint64_t max_supply, bool broadcast);
       
       /**
        * Issue asset to an account
