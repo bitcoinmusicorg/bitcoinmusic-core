@@ -1220,7 +1220,7 @@ BOOST_AUTO_TEST_CASE( proposals_with_mixed_authorities )
    {
       content_operation cop;
       cop.uploader = "uhura";
-      cop.url = "ipfs://abcdefg1";
+      cop.url = "bmfs://abcdefg1";
       cop.album_meta.album_title = "Albuquerque";
       cop.track_meta.track_title = "Tracksonville";
       cop.comp_meta.third_party_publishers = false;
@@ -1237,7 +1237,7 @@ BOOST_AUTO_TEST_CASE( proposals_with_mixed_authorities )
       cop.management_threshold = 40;
       trx.operations.push_back( cop );
 
-      cop.url = "ipfs://abcdefg2";
+      cop.url = "bmfs://abcdefg2";
       cop.track_meta.track_title = "Track Stop";
       cop.comp_meta.third_party_publishers = true;
       dist.payee = "penny";
@@ -1255,10 +1255,10 @@ BOOST_AUTO_TEST_CASE( proposals_with_mixed_authorities )
       PUSH_TX( db, trx );
       trx.clear();
 
-      const auto& content1 = db.get_content( "ipfs://abcdefg1" );
+      const auto& content1 = db.get_content( "bmfs://abcdefg1" );
       BOOST_CHECK_EQUAL( 1000, content1.playing_reward );
 
-      const auto& content2 = db.get_content( "ipfs://abcdefg2" );
+      const auto& content2 = db.get_content( "bmfs://abcdefg2" );
       BOOST_CHECK_EQUAL( 60, content2.manage_comp.weight_threshold );
    }
 
@@ -1277,7 +1277,7 @@ BOOST_AUTO_TEST_CASE( proposals_with_mixed_authorities )
       pc.proposed_ops.emplace_back( friend_op );
 
       content_update_operation cup;
-      cup.url = "ipfs://abcdefg1";
+      cup.url = "bmfs://abcdefg1";
       cup.side = content_update_operation::side_t::master;
       cup.new_playing_reward = 500;
       cup.new_publishers_share = 0;
@@ -1327,12 +1327,12 @@ BOOST_AUTO_TEST_CASE( proposals_with_mixed_authorities )
 
       // Proposal was executed
       BOOST_CHECK_EQUAL( 0, pidx.size() );
-      const auto& content1 = db.get_content( "ipfs://abcdefg1" );
+      const auto& content1 = db.get_content( "bmfs://abcdefg1" );
       BOOST_CHECK_EQUAL( 500, content1.playing_reward );
 
 
       pc.proposed_ops.clear();
-      cup.url = "ipfs://abcdefg2";
+      cup.url = "bmfs://abcdefg2";
       cup.side = content_update_operation::side_t::publisher;
       management_vote mgmt;
       mgmt.voter = "marge";
@@ -1385,7 +1385,7 @@ BOOST_AUTO_TEST_CASE( proposals_with_mixed_authorities )
 
       // Proposal was executed
       BOOST_CHECK_EQUAL( 0, pidx.size() );
-      const auto& content2 = db.get_content( "ipfs://abcdefg2" );
+      const auto& content2 = db.get_content( "bmfs://abcdefg2" );
       BOOST_CHECK_EQUAL( 40, content2.manage_comp.weight_threshold );
    }
 } FC_LOG_AND_RETHROW() }

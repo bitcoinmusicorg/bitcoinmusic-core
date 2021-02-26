@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_CASE( simple_test )
       {
       content_operation cop;
       cop.uploader = "uhura";
-      cop.url = "ipfs://abcdef1";
+      cop.url = "bmfs://abcdef1";
       cop.album_meta.album_title = "First test song";
       cop.track_meta.track_title = "First test song";
       cop.comp_meta.third_party_publishers = false;
@@ -246,12 +246,12 @@ BOOST_AUTO_TEST_CASE( simple_test )
       FAIL( "with bad url protocol", cop );
       cop.url = "";
       FAIL( "with empty url", cop );
-      cop.url = "ipfs://1234567890";
+      cop.url = "bmfs://1234567890";
       for( int i = 0; i < BTCM_MAX_URL_LENGTH / 10; i++ )
           cop.url += "1234567890";
       FAIL( "with too long url", cop );
 
-      cop.url = "ipfs://abcdef1";
+      cop.url = "bmfs://abcdef1";
       cop.album_meta.album_title = "";
       FAIL( "with empty album title", cop );
       cop.album_meta.album_title = "Sixteen tons";
@@ -309,14 +309,14 @@ BOOST_AUTO_TEST_CASE( simple_test )
       tx.operations.push_back( cop );
       db.push_transaction( tx, database::skip_transaction_signatures );
 
-      cop.url = "ipfs://abcdef2";
+      cop.url = "bmfs://abcdef2";
       cop.playing_reward = 11;
       cop.publishers_share = 1;
       tx.operations.clear();
       tx.operations.push_back( cop );
       db.push_transaction( tx, database::skip_transaction_signatures  );
 
-      cop.url = "ipfs://abcdef3";
+      cop.url = "bmfs://abcdef3";
       cop.distributions.begin()->payee = "priscilla";
       tx.operations.clear();
       tx.operations.push_back( cop );
@@ -324,9 +324,9 @@ BOOST_AUTO_TEST_CASE( simple_test )
       }
       // --------- Verify content ------------
       {
-         const content_object& song = db.get_content( "ipfs://abcdef1" );
+         const content_object& song = db.get_content( "bmfs://abcdef1" );
          BOOST_CHECK_EQUAL( "uhura", song.uploader );
-         BOOST_CHECK_EQUAL( "ipfs://abcdef1", song.url );
+         BOOST_CHECK_EQUAL( "bmfs://abcdef1", song.url );
          BOOST_CHECK_EQUAL( 0, song.accumulated_balance_master.amount.value );
          BOOST_CHECK_EQUAL( BTCM_SYMBOL, song.accumulated_balance_master.asset_id );
          BOOST_CHECK_EQUAL( 0, song.accumulated_balance_comp.amount.value );
@@ -363,7 +363,7 @@ BOOST_AUTO_TEST_CASE( simple_test )
       {
           content_approve_operation cao;
           cao.approver = "alice";
-          cao.url = "ipfs://abcdef1";
+          cao.url = "bmfs://abcdef1";
 
           cao.approver = "x";
           FAIL( "with bad account", cao );
@@ -373,12 +373,12 @@ BOOST_AUTO_TEST_CASE( simple_test )
           FAIL( "with bad url protocol", cao );
           cao.url = "";
           FAIL( "with empty url", cao );
-          cao.url = "ipfs://1234567890";
+          cao.url = "bmfs://1234567890";
           for( int i = 0; i < BTCM_MAX_URL_LENGTH / 10; i++ )
               cao.url += "1234567890";
           FAIL( "with too long url", cao );
 
-          cao.url = "ipfs://abcdef1";
+          cao.url = "bmfs://abcdef1";
           BOOST_TEST_MESSAGE( "--- Test success" );
           tx.operations.clear();
           tx.operations.push_back( cao );
@@ -395,7 +395,7 @@ BOOST_AUTO_TEST_CASE( simple_test )
       streaming_platform_report_operation spro;
       spro.streaming_platform = "suzy";
       spro.consumer = "colette";
-      spro.content = "ipfs://abcdef1";
+      spro.content = "bmfs://abcdef1";
       spro.play_time = 7200;
 
       spro.streaming_platform = "x";
@@ -410,10 +410,10 @@ BOOST_AUTO_TEST_CASE( simple_test )
       FAIL( "with non-existing consumer", spro );
 
       spro.consumer = "colette";
-      spro.content = "ipfs://no";
+      spro.content = "bmfs://no";
       FAIL( "with non-existing content", spro );
 
-      spro.content = "ipfs://abcdef1";
+      spro.content = "bmfs://abcdef1";
       spro.play_time = 86401;
       FAIL( "with more than 1 day listening time", spro );
       spro.play_time = 0;
@@ -425,14 +425,14 @@ BOOST_AUTO_TEST_CASE( simple_test )
       tx.operations.push_back( spro );
       db.push_transaction( tx, database::skip_transaction_signatures  );
 
-      spro.content = "ipfs://abcdef2";
+      spro.content = "bmfs://abcdef2";
       spro.consumer = "cora";
       spro.play_time = 3600;
       tx.operations.clear();
       tx.operations.push_back( spro );
       db.push_transaction( tx, database::skip_transaction_signatures  );
 
-      spro.content = "ipfs://abcdef3";
+      spro.content = "bmfs://abcdef3";
       spro.consumer = "coreen";
       spro.play_time = 1800;
       tx.operations.clear();
@@ -441,7 +441,7 @@ BOOST_AUTO_TEST_CASE( simple_test )
       }
       // --------- Verify playtime ------------
       {
-      const content_object& song1 = db.get_content( "ipfs://abcdef1" );
+      const content_object& song1 = db.get_content( "bmfs://abcdef1" );
       BOOST_CHECK_EQUAL( 7200, colette_id(db).total_listening_time );
       BOOST_CHECK_EQUAL( 1, song1.times_played );
       BOOST_CHECK_EQUAL( 1, song1.times_played_24 );
@@ -466,16 +466,16 @@ BOOST_AUTO_TEST_CASE( simple_test )
       {
       content_update_operation cup;
       cup.side = content_update_operation::side_t::master;
-      cup.url = "ipfs://abcdef1";
+      cup.url = "bmfs://abcdef1";
 
       cup.side = content_update_operation::side_t::publisher;
       FAIL( "of publisher update for single-sided content", cup );
 
       cup.side = content_update_operation::side_t::master;
-      cup.url = "ipfs://no";
+      cup.url = "bmfs://no";
       FAIL( "of update for non-existant url", cup );
 
-      cup.url = "ipfs://abcdef1";
+      cup.url = "bmfs://abcdef1";
       cup.new_playing_reward = BTCM_100_PERCENT + 1;
       FAIL( "of update with too high playing reward", cup );
 
@@ -548,7 +548,7 @@ BOOST_AUTO_TEST_CASE( simple_test )
       }
       // --------- Verify update ------------
       {
-      const content_object& song1 = db.get_content( "ipfs://abcdef1" );
+      const content_object& song1 = db.get_content( "bmfs://abcdef1" );
       BOOST_CHECK( ! song1.comp_meta.third_party_publishers );
       BOOST_CHECK_EQUAL( "Simple test album", song1.album_meta.album_title );
       BOOST_CHECK_EQUAL( "Simple test track", song1.track_meta.track_title );
@@ -561,7 +561,7 @@ BOOST_AUTO_TEST_CASE( simple_test )
       {
          vote_operation vop;
          vop.voter = "veronica";
-         vop.url = "ipfs://abcdef1";
+         vop.url = "bmfs://abcdef1";
          vop.weight = 1;
 
          vop.voter = "x";
@@ -572,12 +572,12 @@ BOOST_AUTO_TEST_CASE( simple_test )
          FAIL( "with bad url protocol", vop );
          vop.url = "";
          FAIL( "with empty url", vop );
-         vop.url = "ipfs://1234567890";
+         vop.url = "bmfs://1234567890";
          for( int i = 0; i < BTCM_MAX_URL_LENGTH / 10; i++ )
             vop.url += "1234567890";
          FAIL( "with too long url", vop );
 
-         vop.url = "ipfs://abcdef1";
+         vop.url = "bmfs://abcdef1";
          vop.weight = BTCM_100_PERCENT + 1;
          FAIL( "with bad weight", vop );
 
@@ -610,7 +610,7 @@ BOOST_AUTO_TEST_CASE( simple_test )
              BOOST_CHECK_EQUAL( 1 + BTCM_MAX_VOTE_CHANGES + 1, vop.weight );
          }
 
-         const content_object& song1 = db.get_content( "ipfs://abcdef1" );
+         const content_object& song1 = db.get_content( "bmfs://abcdef1" );
          const auto& content_vote_idx = db.get_index_type< content_vote_index >().indices().get< by_content_voter >();
          const auto voted = content_vote_idx.find( std::make_tuple( song1.id, vici_id ) );
          BOOST_CHECK( voted != content_vote_idx.end() );
@@ -685,9 +685,9 @@ BOOST_AUTO_TEST_CASE( simple_test )
       asset full_comp_reward = asset( full_reward.amount.value * 1 / BTCM_100_PERCENT, BTCM_SYMBOL ); // publishers_share
       asset master_reward = full_reward - full_comp_reward;
 
-      const content_object& song1 = db.get_content( "ipfs://abcdef1" );
-      const content_object& song2 = db.get_content( "ipfs://abcdef2" );
-      const content_object& song3 = db.get_content( "ipfs://abcdef3" );
+      const content_object& song1 = db.get_content( "bmfs://abcdef1" );
+      const content_object& song2 = db.get_content( "bmfs://abcdef2" );
+      const content_object& song3 = db.get_content( "bmfs://abcdef3" );
       BOOST_CHECK_EQUAL( 0, song1.accumulated_balance_master.amount.value );
       BOOST_CHECK_EQUAL( 0, song2.accumulated_balance_master.amount.value );
       BOOST_CHECK_EQUAL( 0, song3.accumulated_balance_master.amount.value );
@@ -793,7 +793,7 @@ BOOST_AUTO_TEST_CASE( multi_test )
       {
       content_operation cop;
       cop.uploader = "uhura";
-      cop.url = "ipfs://abcdef9";
+      cop.url = "bmfs://abcdef9";
       cop.album_meta.album_title = "Multi test album";
       cop.track_meta.track_title = "Multi test song";
       cop.track_meta.json_metadata = "{\"id\": 1}";
@@ -853,9 +853,9 @@ BOOST_AUTO_TEST_CASE( multi_test )
       }
       // --------- Verify content ------------
       {
-         const content_object& song = db.get_content( "ipfs://abcdef9" );
+         const content_object& song = db.get_content( "bmfs://abcdef9" );
          BOOST_CHECK_EQUAL( "uhura", song.uploader );
-         BOOST_CHECK_EQUAL( "ipfs://abcdef9", song.url );
+         BOOST_CHECK_EQUAL( "bmfs://abcdef9", song.url );
          BOOST_CHECK_EQUAL( 0, song.accumulated_balance_master.amount.value );
          BOOST_CHECK_EQUAL( BTCM_SYMBOL, song.accumulated_balance_master.asset_id );
          BOOST_CHECK_EQUAL( 0, song.accumulated_balance_comp.amount.value );
@@ -913,7 +913,7 @@ BOOST_AUTO_TEST_CASE( multi_test )
       streaming_platform_report_operation spro;
       spro.streaming_platform = "suzy";
       spro.consumer = "colette";
-      spro.content = "ipfs://abcdef9";
+      spro.content = "bmfs://abcdef9";
       spro.play_time = 3600;
 
       BOOST_TEST_MESSAGE( "--- Test success" );
@@ -932,7 +932,7 @@ BOOST_AUTO_TEST_CASE( multi_test )
       {
       content_update_operation cup;
       cup.side = content_update_operation::side_t::publisher;
-      cup.url = "ipfs://abcdef9";
+      cup.url = "bmfs://abcdef9";
       cup.new_playing_reward = 11;
       cup.new_publishers_share = 1;
 
@@ -964,7 +964,7 @@ BOOST_AUTO_TEST_CASE( multi_test )
       }
       // --------- Verify update ------------
       {
-      const content_object& song1 = db.get_content( "ipfs://abcdef9" );
+      const content_object& song1 = db.get_content( "bmfs://abcdef9" );
       BOOST_CHECK( song1.comp_meta.third_party_publishers );
       BOOST_CHECK_EQUAL( "penny", song1.distributions_comp[0].payee );
       BOOST_CHECK_EQUAL( 1, song1.distributions_comp.size() );
@@ -977,7 +977,7 @@ BOOST_AUTO_TEST_CASE( multi_test )
       {
          vote_operation vop;
          vop.voter = "veronica";
-         vop.url = "ipfs://abcdef9";
+         vop.url = "bmfs://abcdef9";
          vop.weight = 1;
 
          vop.voter = "x";
@@ -988,12 +988,12 @@ BOOST_AUTO_TEST_CASE( multi_test )
          FAIL( "with bad url protocol", vop );
          vop.url = "";
          FAIL( "with empty url", vop );
-         vop.url = "ipfs://1234567890";
+         vop.url = "bmfs://1234567890";
          for( int i = 0; i < BTCM_MAX_URL_LENGTH / 10; i++ )
             vop.url += "1234567890";
          FAIL( "with too long url", vop );
 
-         vop.url = "ipfs://abcdef9";
+         vop.url = "bmfs://abcdef9";
          vop.weight = BTCM_100_PERCENT + 1;
          FAIL( "with bad weight", vop );
 
@@ -1056,7 +1056,7 @@ BOOST_AUTO_TEST_CASE( multi_test )
       asset comp_reward = asset( daily_content_reward.amount.value * 1 / BTCM_100_PERCENT, BTCM_SYMBOL ); // publishers_share
       asset master_reward = daily_content_reward - comp_reward;
 
-      const content_object& song1 = db.get_content( "ipfs://abcdef9" );
+      const content_object& song1 = db.get_content( "bmfs://abcdef9" );
       BOOST_CHECK_EQUAL( 1, song1.accumulated_balance_master.amount.value );
       BOOST_CHECK_EQUAL( 0, song1.accumulated_balance_comp.amount.value );
       BOOST_CHECK_EQUAL( master_reward.amount.value * (BTCM_100_PERCENT/3) / BTCM_100_PERCENT, paula_id(db).balance.amount.value );
@@ -1144,7 +1144,7 @@ BOOST_AUTO_TEST_CASE( simple_authority_test )
       {
       content_operation cop;
       cop.uploader = "uhura";
-      cop.url = "ipfs://abcdef1";
+      cop.url = "bmfs://abcdef1";
       cop.album_meta.album_title = "First test song";
       cop.track_meta.track_title = "First test song";
       cop.comp_meta.third_party_publishers = false;
@@ -1173,7 +1173,7 @@ BOOST_AUTO_TEST_CASE( simple_authority_test )
       streaming_platform_report_operation spro;
       spro.streaming_platform = "suzy";
       spro.consumer = "colette";
-      spro.content = "ipfs://abcdef1";
+      spro.content = "bmfs://abcdef1";
       spro.play_time = 100;
       tx.operations.clear();
       tx.operations.push_back( spro );
@@ -1213,7 +1213,7 @@ BOOST_AUTO_TEST_CASE( simple_authority_test )
       {
       content_update_operation cup;
       cup.side = content_update_operation::side_t::master;
-      cup.url = "ipfs://abcdef1";
+      cup.url = "bmfs://abcdef1";
       cup.new_playing_reward = 11;
       cup.new_publishers_share = 1;
       cup.album_meta = content_metadata_album_master();
@@ -1241,7 +1241,7 @@ BOOST_AUTO_TEST_CASE( simple_authority_test )
       // --------- Content removal ------------
       {
       content_disable_operation cro;
-      cro.url = "ipfs://abcdef1";
+      cro.url = "bmfs://abcdef1";
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( cro );
@@ -1296,7 +1296,7 @@ BOOST_AUTO_TEST_CASE( simple_authority_test )
       asset comp_reward = asset( (payout1.amount.value + payout2.amount.value) * 1 / BTCM_100_PERCENT, BTCM_SYMBOL ); // publishers_share
       asset master_reward = payout1 + payout2 - comp_reward;
 
-      const content_object& song1 = db.get_content( "ipfs://abcdef1" );
+      const content_object& song1 = db.get_content( "bmfs://abcdef1" );
       BOOST_CHECK_EQUAL( 0, song1.accumulated_balance_master.amount.value );
       BOOST_CHECK_EQUAL( comp_reward.amount.value, song1.accumulated_balance_comp.amount.value );
       BOOST_CHECK_EQUAL( master_reward.amount.value, paula_id(db).balance.amount.value );
@@ -1371,7 +1371,7 @@ BOOST_AUTO_TEST_CASE( multi_authority_test )
       {
       content_operation cop;
       cop.uploader = "uhura";
-      cop.url = "ipfs://abcdef1";
+      cop.url = "bmfs://abcdef1";
       cop.album_meta.album_title = "First test song";
       cop.track_meta.track_title = "First test song";
       cop.comp_meta.third_party_publishers = true;
@@ -1408,7 +1408,7 @@ BOOST_AUTO_TEST_CASE( multi_authority_test )
       {
       content_update_operation cup;
       cup.side = content_update_operation::side_t::master;
-      cup.url = "ipfs://abcdef1";
+      cup.url = "bmfs://abcdef1";
       cup.album_meta = content_metadata_album_master();
       cup.album_meta->album_title = "Simple test album";
       cup.track_meta = content_metadata_track_master();
@@ -1439,7 +1439,7 @@ BOOST_AUTO_TEST_CASE( multi_authority_test )
       {
       content_update_operation cup;
       cup.side = content_update_operation::side_t::publisher;
-      cup.url = "ipfs://abcdef1";
+      cup.url = "bmfs://abcdef1";
       cup.new_playing_reward = 0;
       cup.new_publishers_share = 0;
       tx.operations.clear();
@@ -1454,7 +1454,7 @@ BOOST_AUTO_TEST_CASE( multi_authority_test )
       // --------- Content removal ------------
       {
       content_disable_operation cro;
-      cro.url = "ipfs://abcdef1";
+      cro.url = "bmfs://abcdef1";
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( cro );
@@ -1925,7 +1925,7 @@ BOOST_AUTO_TEST_CASE( disable_test )
    {
       content_operation cop;
       cop.uploader = "uhura";
-      cop.url = "ipfs://abcdef1";
+      cop.url = "bmfs://abcdef1";
       cop.album_meta.album_title = "First test song";
       cop.track_meta.track_title = "First test song";
       cop.comp_meta.third_party_publishers = false;
@@ -1950,7 +1950,7 @@ BOOST_AUTO_TEST_CASE( disable_test )
       streaming_platform_report_operation spro;
       spro.streaming_platform = "suzy";
       spro.consumer = "colette";
-      spro.content = "ipfs://abcdef1";
+      spro.content = "bmfs://abcdef1";
       spro.play_time = 100;
       tx.operations.clear();
       tx.operations.push_back( spro );
@@ -1960,18 +1960,18 @@ BOOST_AUTO_TEST_CASE( disable_test )
    // --------- Content removal ------------
    {
       content_disable_operation cro;
-      cro.url = "ipfs://abcdef1";
+      cro.url = "bmfs://abcdef1";
 
       cro.url = "http://abcdef1";
       FAIL( "with bad url protocol", cro );
       cro.url = "";
       FAIL( "with empty url", cro );
-      cro.url = "ipfs://1234567890";
+      cro.url = "bmfs://1234567890";
       for( int i = 0; i < BTCM_MAX_URL_LENGTH / 10; i++ )
           cro.url += "1234567890";
       FAIL( "with too long url", cro );
 
-      cro.url = "ipfs://abcdef1";
+      cro.url = "bmfs://abcdef1";
       tx.operations.clear();
       tx.operations.push_back( cro );
       db.push_transaction( tx, database::skip_transaction_signatures  );
@@ -1984,7 +1984,7 @@ BOOST_AUTO_TEST_CASE( disable_test )
    {
        content_approve_operation cao;
        cao.approver = "alice";
-       cao.url = "ipfs://abcdef1";
+       cao.url = "bmfs://abcdef1";
        FAIL( "approve after disable", cao );
    }
 
@@ -1992,7 +1992,7 @@ BOOST_AUTO_TEST_CASE( disable_test )
    {
       content_update_operation cup;
       cup.side = content_update_operation::side_t::master;
-      cup.url = "ipfs://abcdef1";
+      cup.url = "bmfs://abcdef1";
       cup.new_publishers_share = 1;
       cup.album_meta = content_metadata_album_master();
       cup.album_meta->album_title = "Simple test album";
@@ -2005,7 +2005,7 @@ BOOST_AUTO_TEST_CASE( disable_test )
    {
       vote_operation vop;
       vop.voter = "veronica";
-      vop.url = "ipfs://abcdef1";
+      vop.url = "bmfs://abcdef1";
       vop.weight = 1;
       FAIL( "vote after disable", vop );
    }
@@ -2015,7 +2015,7 @@ BOOST_AUTO_TEST_CASE( disable_test )
       streaming_platform_report_operation spro;
       spro.streaming_platform = "suzy";
       spro.consumer = "colette";
-      spro.content = "ipfs://abcdef1";
+      spro.content = "bmfs://abcdef1";
       spro.play_time = 100;
       FAIL( "report after disable", spro );
    }
@@ -2209,7 +2209,7 @@ BOOST_AUTO_TEST_CASE( delegated_reporting_test )
    {
       content_operation cop;
       cop.uploader = "uhura";
-      cop.url = "ipfs://abcdef1";
+      cop.url = "bmfs://abcdef1";
       cop.album_meta.album_title = "First test song";
       cop.track_meta.track_title = "First test song";
       cop.comp_meta.third_party_publishers = false;
@@ -2234,7 +2234,7 @@ BOOST_AUTO_TEST_CASE( delegated_reporting_test )
       streaming_platform_report_operation spro;
       spro.streaming_platform = "sarah";
       spro.consumer = "alice";
-      spro.content = "ipfs://abcdef1";
+      spro.content = "bmfs://abcdef1";
       spro.play_time = 100;
       trx.operations.push_back( spro );
       db.push_transaction( trx, database::skip_transaction_signatures  );
@@ -2252,7 +2252,7 @@ BOOST_AUTO_TEST_CASE( delegated_reporting_test )
       spro.streaming_platform = "suzie";
       spro.ext.value.spinning_platform = "sarah";
       spro.consumer = "alice";
-      spro.content = "ipfs://abcdef1";
+      spro.content = "bmfs://abcdef1";
       spro.play_time = 100;
       trx.operations.push_back( spro );
       BOOST_CHECK_THROW( db.push_transaction( trx, database::skip_transaction_signatures ), fc::assert_exception );
@@ -2277,7 +2277,7 @@ BOOST_AUTO_TEST_CASE( delegated_reporting_test )
       spro.streaming_platform = "suzie";
       spro.ext.value.spinning_platform = "sarah";
       spro.consumer = "alice";
-      spro.content = "ipfs://abcdef1";
+      spro.content = "bmfs://abcdef1";
       spro.play_time = 100;
       trx.operations.push_back( spro );
       db.push_transaction( trx, database::skip_transaction_signatures );
@@ -2297,7 +2297,7 @@ BOOST_AUTO_TEST_CASE( delegated_reporting_test )
       streaming_platform_report_operation spro;
       spro.streaming_platform = "sarah";
       spro.consumer = "alice";
-      spro.content = "ipfs://abcdef1";
+      spro.content = "bmfs://abcdef1";
       spro.play_time = 200;
       trx.operations.push_back( spro );
       db.push_transaction( trx, database::skip_transaction_signatures  );
@@ -2337,7 +2337,7 @@ BOOST_AUTO_TEST_CASE( delegated_report_payouts )
    {
       content_operation cop;
       cop.uploader = "uhura";
-      cop.url = "ipfs://abcdef1";
+      cop.url = "bmfs://abcdef1";
       cop.album_meta.album_title = "First test album";
       cop.track_meta.track_title = "First test song";
       cop.comp_meta.third_party_publishers = false;
@@ -2354,11 +2354,11 @@ BOOST_AUTO_TEST_CASE( delegated_report_payouts )
       cop.publishers_share = 0;
       trx.operations.push_back( cop );
 
-      cop.url = "ipfs://abcdef2";
+      cop.url = "bmfs://abcdef2";
       cop.track_meta.track_title = "Second test song";
       trx.operations.push_back( cop );
 
-      cop.url = "ipfs://abcdef3";
+      cop.url = "bmfs://abcdef3";
       cop.track_meta.track_title = "Third test song";
       trx.operations.push_back( cop );
       db.push_transaction( trx, database::skip_transaction_signatures  );
@@ -2382,17 +2382,17 @@ BOOST_AUTO_TEST_CASE( delegated_report_payouts )
       streaming_platform_report_operation spro;
       spro.streaming_platform = "suzie";
       spro.consumer = "colette";
-      spro.content = "ipfs://abcdef1";
+      spro.content = "bmfs://abcdef1";
       spro.play_time = 7200;
       spro.ext.value.spinning_platform = "sarah";
       trx.operations.push_back( spro );
 
-      spro.content = "ipfs://abcdef2";
+      spro.content = "bmfs://abcdef2";
       spro.consumer = "cora";
       spro.play_time = 3600;
       trx.operations.push_back( spro );
 
-      spro.content = "ipfs://abcdef3";
+      spro.content = "bmfs://abcdef3";
       spro.consumer = "coreen";
       spro.play_time = 1800;
       trx.operations.push_back( spro );
@@ -2421,9 +2421,9 @@ BOOST_AUTO_TEST_CASE( delegated_report_payouts )
    generate_block();
 
    {
-      const content_object& song1 = db.get_content( "ipfs://abcdef1" );
-      const content_object& song2 = db.get_content( "ipfs://abcdef2" );
-      const content_object& song3 = db.get_content( "ipfs://abcdef3" );
+      const content_object& song1 = db.get_content( "bmfs://abcdef1" );
+      const content_object& song2 = db.get_content( "bmfs://abcdef2" );
+      const content_object& song3 = db.get_content( "bmfs://abcdef3" );
       BOOST_CHECK_EQUAL( 0, song1.accumulated_balance_master.amount.value );
       BOOST_CHECK_EQUAL( 0, song2.accumulated_balance_master.amount.value );
       BOOST_CHECK_EQUAL( 0, song3.accumulated_balance_master.amount.value );
@@ -2667,7 +2667,7 @@ BOOST_AUTO_TEST_CASE( split_payout_test )
    {
       content_operation cop;
       cop.uploader = "uhura";
-      cop.url = "ipfs://abcdef1";
+      cop.url = "bmfs://abcdef1";
       cop.album_meta.album_title = "First test song";
       cop.track_meta.track_title = "First test song";
       cop.comp_meta.third_party_publishers = false;
@@ -2684,12 +2684,12 @@ BOOST_AUTO_TEST_CASE( split_payout_test )
       cop.publishers_share = 0;
       trx.operations.push_back( cop );
 
-      cop.url = "ipfs://abcdef2";
+      cop.url = "bmfs://abcdef2";
       cop.playing_reward = 11;
       cop.publishers_share = 1;
       trx.operations.push_back( cop );
 
-      cop.url = "ipfs://abcdef3";
+      cop.url = "bmfs://abcdef3";
       cop.distributions.begin()->payee = "priscilla";
       trx.operations.push_back( cop );
       db.push_transaction( trx, database::skip_transaction_signatures  );
@@ -2701,17 +2701,17 @@ BOOST_AUTO_TEST_CASE( split_payout_test )
       streaming_platform_report_operation spro;
       spro.streaming_platform = "suzy";
       spro.consumer = "colette";
-      spro.content = "ipfs://abcdef1";
+      spro.content = "bmfs://abcdef1";
       spro.play_time = 7200;
       BOOST_TEST_MESSAGE( "--- Test success" );
       trx.operations.push_back( spro );
 
-      spro.content = "ipfs://abcdef2";
+      spro.content = "bmfs://abcdef2";
       spro.consumer = "cora";
       spro.play_time = 3600;
       trx.operations.push_back( spro );
 
-      spro.content = "ipfs://abcdef3";
+      spro.content = "bmfs://abcdef3";
       spro.consumer = "coreen";
       spro.play_time = 1800;
       trx.operations.push_back( spro );
@@ -2764,9 +2764,9 @@ BOOST_AUTO_TEST_CASE( split_payout_test )
    generate_block();
 
    {
-      const content_object& song1 = db.get_content( "ipfs://abcdef1" );
-      const content_object& song2 = db.get_content( "ipfs://abcdef2" );
-      const content_object& song3 = db.get_content( "ipfs://abcdef3" );
+      const content_object& song1 = db.get_content( "bmfs://abcdef1" );
+      const content_object& song2 = db.get_content( "bmfs://abcdef2" );
+      const content_object& song3 = db.get_content( "bmfs://abcdef3" );
       BOOST_CHECK_EQUAL( 0, song1.accumulated_balance_master.amount.value );
       BOOST_CHECK_EQUAL( 0, song2.accumulated_balance_master.amount.value );
       BOOST_CHECK_EQUAL( 0, song3.accumulated_balance_master.amount.value );
@@ -2877,7 +2877,7 @@ BOOST_AUTO_TEST_CASE( anon_user_test )
    {
       content_operation cop;
       cop.uploader = "uhura";
-      cop.url = "ipfs://abcdef1";
+      cop.url = "bmfs://abcdef1";
       cop.album_meta.album_title = "First test song";
       cop.track_meta.track_title = "First test song";
       cop.comp_meta.third_party_publishers = false;
@@ -2894,12 +2894,12 @@ BOOST_AUTO_TEST_CASE( anon_user_test )
       cop.publishers_share = 0;
       trx.operations.push_back( cop );
 
-      cop.url = "ipfs://abcdef2";
+      cop.url = "bmfs://abcdef2";
       cop.playing_reward = 11;
       cop.publishers_share = 1;
       trx.operations.push_back( cop );
 
-      cop.url = "ipfs://abcdef3";
+      cop.url = "bmfs://abcdef3";
       cop.distributions.begin()->payee = "priscilla";
       trx.operations.push_back( cop );
       db.push_transaction( trx, database::skip_transaction_signatures  );
@@ -2911,16 +2911,16 @@ BOOST_AUTO_TEST_CASE( anon_user_test )
       streaming_platform_report_operation spro;
       spro.streaming_platform = "suzy";
       spro.consumer = "";
-      spro.content = "ipfs://abcdef1";
+      spro.content = "bmfs://abcdef1";
       spro.play_time = 7200;
       trx.operations.push_back( spro );
 
-      spro.content = "ipfs://abcdef2";
+      spro.content = "bmfs://abcdef2";
       spro.ext.value.sp_user_id = 1;
       spro.play_time = 3600;
       trx.operations.push_back( spro );
 
-      spro.content = "ipfs://abcdef3";
+      spro.content = "bmfs://abcdef3";
       spro.ext.value.sp_user_id = 2;
       spro.play_time = 1800;
       trx.operations.push_back( spro );
@@ -2962,9 +2962,9 @@ BOOST_AUTO_TEST_CASE( anon_user_test )
    BOOST_CHECK( db.get_index_type<streaming_platform_user_index>().indices().empty() );
 
    {
-      const content_object& song1 = db.get_content( "ipfs://abcdef1" );
-      const content_object& song2 = db.get_content( "ipfs://abcdef2" );
-      const content_object& song3 = db.get_content( "ipfs://abcdef3" );
+      const content_object& song1 = db.get_content( "bmfs://abcdef1" );
+      const content_object& song2 = db.get_content( "bmfs://abcdef2" );
+      const content_object& song3 = db.get_content( "bmfs://abcdef3" );
       BOOST_CHECK_EQUAL( 0, song1.accumulated_balance_master.amount.value );
       BOOST_CHECK_EQUAL( 0, song2.accumulated_balance_master.amount.value );
       BOOST_CHECK_EQUAL( 0, song3.accumulated_balance_master.amount.value );

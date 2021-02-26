@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE( get_accounts_test )
       BOOST_CHECK_EQUAL( pid2.instance.value, charlene_account.proposals[0].id.instance() );
    }
 
-   const string url = "ipfs://abcdef1";
+   const string url = "bmfs://abcdef1";
    {
       content_operation cop;
       cop.uploader = "uhura";
@@ -495,7 +495,7 @@ BOOST_AUTO_TEST_CASE( list_content )
 
    content_operation cop;
    cop.uploader = "uhura";
-   cop.url = "ipfs://abcdef1";
+   cop.url = "bmfs://abcdef1";
    cop.album_meta.album_title = "First test album";
    cop.album_meta.album_type = "CD";
    cop.album_meta.genre_1 = 1;
@@ -515,12 +515,12 @@ BOOST_AUTO_TEST_CASE( list_content )
    cop.publishers_share = 0;
    cop.publishers_share = 0;
    tx.operations.push_back( cop );
-   cop.url = "ipfs://abcdef2";
+   cop.url = "bmfs://abcdef2";
    cop.album_meta.album_type = "Podcast";
    cop.track_meta.track_title = "Second test song";
    cop.track_meta.genre_1 = 1;
    tx.operations.push_back( cop );
-   cop.url = "ipfs://abcdef3";
+   cop.url = "bmfs://abcdef3";
    cop.album_meta.album_type.reset();
    cop.track_meta.track_title = "Third test song";
    cop.album_meta.genre_2 = 3;
