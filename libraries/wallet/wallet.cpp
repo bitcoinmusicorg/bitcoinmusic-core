@@ -1095,15 +1095,16 @@ public:
                                     ? BTCM_SUBASSET_CREATION_FEE : BTCM_ASSET_CREATION_FEE,
                                 BTCM_SYMBOL );
          create_op.issuer = issuer_account.name;
-         create_op.symbol = asset_name;
+         create_op.symbol = std::move(asset_name);
          create_op.precision = precision;
+         create_op.common_options.description = std::move(description);
          create_op.common_options.max_supply=max_supply;
          create_op.common_options.flags=override_authority|disable_confidential;
          signed_transaction tx;
          tx.operations.push_back( create_op );
          tx.validate();
          return sign_transaction( tx, broadcast );
-      }FC_CAPTURE_AND_RETHROW( (issuer)(asset_name)(description)(max_supply) ) 
+      }FC_CAPTURE_AND_RETHROW( (issuer)(asset_name)(description)(precision)(max_supply) )
    }
 
 
