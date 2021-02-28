@@ -27,13 +27,13 @@ struct market_ticker
    double      highest_bid = 0;
    double      percent_change = 0;
    asset       btcm_volume = asset( 0 , BTCM_SYMBOL );
-   asset       mbd_volume = asset( 0, MBD_SYMBOL );
+   asset       mbd_volume = asset( 0, XUSD_SYMBOL );
 };
 
 struct market_volume
 {
    asset       btcm_volume = asset( 0, BTCM_SYMBOL );
-   asset       mbd_volume = asset( 0, MBD_SYMBOL );
+   asset       mbd_volume = asset( 0, XUSD_SYMBOL );
 };
 
 struct order
@@ -64,7 +64,7 @@ class market_history_api
       void on_api_startup();
 
       /**
-       * @brief Returns the market ticker for the internal MBD:BTCM market
+       * @brief Returns the market ticker for the internal XUSD:BTCM market
        */
       market_ticker get_ticker() const;
 
@@ -74,13 +74,13 @@ class market_history_api
       market_volume get_volume() const;
 
       /**
-       * @brief Returns the current order book for the internal MBD:BTCM market.
+       * @brief Returns the current order book for the internal XUSD:BTCM market.
        * @param limit The number of orders to have on each side of the order book. Maximum is 500
        */
       order_book get_order_book( uint32_t limit = 500 ) const;
 
       /**
-       * @brief Returns the trade history for the internal MBD:BTCM market.
+       * @brief Returns the trade history for the internal XUSD:BTCM market.
        * @param start The start time of the trade history.
        * @param end The end time of the trade history.
        * @param limit The number of trades to return. Maximum is 1000.
@@ -89,14 +89,14 @@ class market_history_api
       std::vector< market_trade > get_trade_history( time_point_sec start, time_point_sec end, uint32_t limit = 1000 ) const;
 
       /**
-       * @brief Returns the N most recent trades for the internal MBD:BTCM market.
+       * @brief Returns the N most recent trades for the internal XUSD:BTCM market.
        * @param limit The number of recent trades to return. Maximum is 1000.
        * @returns A list of completed trades.
        */
        std::vector< market_trade > get_recent_trades( uint32_t limit = 1000 ) const;
 
       /**
-       * @brief Returns the market history for the internal MBD:BTCM market.
+       * @brief Returns the market history for the internal XUSD:BTCM market.
        * @param bucket_seconds The size of buckets the history is broken into. The bucket size must be configured in the plugin options.
        * @param start The start time to get market history.
        * @param end The end time to get market history

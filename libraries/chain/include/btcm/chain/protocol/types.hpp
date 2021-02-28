@@ -286,7 +286,7 @@ namespace btcm { namespace chain {
 
 extern btcm::chain::asset_id_type BTCM_SYMBOL;
 extern btcm::chain::asset_id_type VESTS_SYMBOL;
-extern btcm::chain::asset_id_type MBD_SYMBOL;
+extern btcm::chain::asset_id_type XUSD_SYMBOL;
 
 namespace fc
 {

@@ -135,7 +135,7 @@ FC_REFLECT( btcm::chain::price, (base)(quote) )
 namespace fc {
     inline void to_variant( const btcm::chain::asset& var,  fc::variant& vo, uint32_t max_depth = 1 )
     {
-       if (var.asset_id == BTCM_SYMBOL || var.asset_id == MBD_SYMBOL || var.asset_id == VESTS_SYMBOL)
+       if (var.asset_id == BTCM_SYMBOL || var.asset_id == XUSD_SYMBOL || var.asset_id == VESTS_SYMBOL)
           vo = var.to_string();
        else
        {
@@ -152,7 +152,7 @@ namespace fc {
        else
        {
           vo = btcm::chain::asset::from_string( var.as_string() );
-          FC_ASSERT( vo.asset_id == BTCM_SYMBOL || vo.asset_id == MBD_SYMBOL || vo.asset_id == VESTS_SYMBOL,
+          FC_ASSERT( vo.asset_id == BTCM_SYMBOL || vo.asset_id == XUSD_SYMBOL || vo.asset_id == VESTS_SYMBOL,
                      "Invalid serialized asset amount, use object representation instead of string!",
                      ("v",var.as_string()) );
        }

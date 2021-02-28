@@ -30,6 +30,9 @@
 
 #include "../common/database_fixture.hpp"
 
+// testnet only
+#define FEE_ASSET_SWITCH_TIME (fc::time_point_sec(1614502800))
+
 using namespace btcm::chain;
 using namespace graphene::db;
 
@@ -39,14 +42,22 @@ BOOST_AUTO_TEST_CASE(create_asset_test)
 { try {
     ACTORS((bob)(federation));
 
+    generate_blocks(FEE_ASSET_SWITCH_TIME + fc::minutes(1));
+
     fund( "federation", 5000000000 );
+
+    set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
 
     trx.clear();
     trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
 
     {
+        convert_operation cop;
+        cop.owner = "federation";
+        cop.amount = asset(BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+        trx.operations.emplace_back(std::move(cop));
         asset_create_operation aco;
-        aco.fee = asset(BTCM_ASSET_CREATION_FEE);
+        aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
         aco.issuer = "federation";
         aco.symbol = "BTS";
         aco.precision = 5;
@@ -122,7 +133,11 @@ BOOST_AUTO_TEST_CASE(trade_asset_test)
     fund("bob");
     fund( "federation", 5000000000 );
     
-    // give bob some fake MBD
+    generate_blocks(FEE_ASSET_SWITCH_TIME + fc::minutes(1));
+
+    set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
+
+    // give bob some fake XUSD
     generate_block();
     db.modify( bob_id(db), [] ( account_object& acct ) {
        acct.mbd_balance.amount = share_type(500000);
@@ -131,15 +146,19 @@ BOOST_AUTO_TEST_CASE(trade_asset_test)
        gpo.current_mbd_supply.amount = share_type(500000);
     });
     db.modify( db.get_feed_history(), [] ( feed_history_object& fho ){
-       fho.effective_median_history = fho.actual_median_history = asset(1) / asset(1, MBD_SYMBOL);
+       fho.effective_median_history = fho.actual_median_history = asset(1) / asset(1, XUSD_SYMBOL);
     });
 
     trx.clear();
     trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
 
     {
+        convert_operation cop;
+        cop.owner = "federation";
+        cop.amount = asset(BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+        trx.operations.emplace_back(std::move(cop));
         asset_create_operation aco;
-        aco.fee = asset(BTCM_ASSET_CREATION_FEE);
+        aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
         aco.issuer = "federation";
         aco.symbol = "BTS";
         aco.precision = 5;
@@ -166,7 +185,7 @@ BOOST_AUTO_TEST_CASE(trade_asset_test)
         limit_order_create_operation loc;
         loc.owner = "federation";
         loc.amount_to_sell = bts.amount(100000);
-        loc.min_to_receive = MBD_SYMBOL(db).amount(100000);
+        loc.min_to_receive = XUSD_SYMBOL(db).amount(100000);
         trx.operations.emplace_back(std::move(loc));
         sign(trx, federation_private_key);
         PUSH_TX(db, trx);
@@ -180,7 +199,7 @@ BOOST_AUTO_TEST_CASE(trade_asset_test)
     {
         limit_order_create_operation loc;
         loc.owner = "bob";
-        loc.amount_to_sell = MBD_SYMBOL(db).amount(200000);
+        loc.amount_to_sell = XUSD_SYMBOL(db).amount(200000);
         loc.min_to_receive = bts.amount(200000);
         trx.operations.emplace_back(std::move(loc));
         sign(trx, bob_private_key);
@@ -191,8 +210,8 @@ BOOST_AUTO_TEST_CASE(trade_asset_test)
     amount = db.get_balance("bob", bts.id);
     BOOST_CHECK(bts.id == amount.asset_id);
     BOOST_CHECK_EQUAL(100000, amount.amount.value);
-    amount = db.get_balance("federation", MBD_SYMBOL);
-    BOOST_CHECK(MBD_SYMBOL == amount.asset_id);
+    amount = db.get_balance("federation", XUSD_SYMBOL);
+    BOOST_CHECK(XUSD_SYMBOL == amount.asset_id);
     BOOST_CHECK_EQUAL(100000, amount.amount.value);
 } FC_LOG_AND_RETHROW() }
 
@@ -207,12 +226,20 @@ BOOST_AUTO_TEST_CASE(trade_assets_test)
     vest("bob", 50000);
     fund( "federation", 5000000000 );
 
+    generate_blocks(FEE_ASSET_SWITCH_TIME + fc::minutes(1));
+
+    set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
+
     trx.clear();
     trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
 
     {
+        convert_operation cop;
+        cop.owner = "federation";
+        cop.amount = asset(2 * BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+        trx.operations.emplace_back(std::move(cop));
         asset_create_operation aco;
-        aco.fee = asset(BTCM_ASSET_CREATION_FEE);
+        aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
         aco.issuer = "federation";
         aco.symbol = "BTS";
         aco.precision = 5;
@@ -248,15 +275,15 @@ BOOST_AUTO_TEST_CASE(trade_assets_test)
         limit_order_create_operation loc;
         loc.owner = "alice";
         loc.amount_to_sell = btc.amount(10000);
-        loc.min_to_receive = MBD_SYMBOL(db).amount(30000000);
+        loc.min_to_receive = XUSD_SYMBOL(db).amount(30000000);
         trx.operations.emplace_back(loc);
         loc.orderid++;
         loc.amount_to_sell = btc.amount(11000);
-        loc.min_to_receive = MBD_SYMBOL(db).amount(34000000);
+        loc.min_to_receive = XUSD_SYMBOL(db).amount(34000000);
         trx.operations.emplace_back(loc);
         loc.orderid++;
         loc.amount_to_sell = btc.amount(12000);
-        loc.min_to_receive = MBD_SYMBOL(db).amount(38000000);
+        loc.min_to_receive = XUSD_SYMBOL(db).amount(38000000);
         trx.operations.emplace_back(loc);
         loc.orderid++;
         loc.amount_to_sell = btc.amount(20000);
@@ -272,15 +299,15 @@ BOOST_AUTO_TEST_CASE(trade_assets_test)
         trx.operations.emplace_back(loc);
         loc.orderid++;
         loc.amount_to_sell = BTCM_SYMBOL(db).amount(1000);
-        loc.min_to_receive = MBD_SYMBOL(db).amount(10);
+        loc.min_to_receive = XUSD_SYMBOL(db).amount(10);
         trx.operations.emplace_back(loc);
         loc.orderid++;
         loc.amount_to_sell = BTCM_SYMBOL(db).amount(1100);
-        loc.min_to_receive = MBD_SYMBOL(db).amount(12);
+        loc.min_to_receive = XUSD_SYMBOL(db).amount(12);
         trx.operations.emplace_back(loc);
         loc.orderid++;
         loc.amount_to_sell = BTCM_SYMBOL(db).amount(1200);
-        loc.min_to_receive = MBD_SYMBOL(db).amount(14);
+        loc.min_to_receive = XUSD_SYMBOL(db).amount(14);
         trx.operations.emplace_back(loc);
         loc.orderid++;
         sign(trx, alice_private_key);
@@ -289,15 +316,15 @@ BOOST_AUTO_TEST_CASE(trade_assets_test)
 
         loc.owner = "bob";
         loc.amount_to_sell = bts.amount(100000);
-        loc.min_to_receive = MBD_SYMBOL(db).amount(200000);
+        loc.min_to_receive = XUSD_SYMBOL(db).amount(200000);
         trx.operations.emplace_back(loc);
         loc.orderid++;
         loc.amount_to_sell = bts.amount(110000);
-        loc.min_to_receive = MBD_SYMBOL(db).amount(230000);
+        loc.min_to_receive = XUSD_SYMBOL(db).amount(230000);
         trx.operations.emplace_back(loc);
         loc.orderid++;
         loc.amount_to_sell = bts.amount(120000);
-        loc.min_to_receive = MBD_SYMBOL(db).amount(260000);
+        loc.min_to_receive = XUSD_SYMBOL(db).amount(260000);
         trx.operations.emplace_back(loc);
         loc.orderid++;
         loc.amount_to_sell = bts.amount(100000);
@@ -331,19 +358,19 @@ BOOST_AUTO_TEST_CASE(trade_assets_test)
 
     auto orderbook = db_api.get_order_book(1000);
     BOOST_CHECK_EQUAL("BTCM", orderbook.base);
-    BOOST_CHECK_EQUAL("MBD", orderbook.quote);
+    BOOST_CHECK_EQUAL("XUSD", orderbook.quote);
     BOOST_CHECK(orderbook.bids.empty());
     BOOST_REQUIRE_EQUAL(3u, orderbook.asks.size());
-    BOOST_CHECK(MBD_SYMBOL(db).amount(10) / BTCM_SYMBOL(db).amount(1000) == orderbook.asks[0].order_price);
+    BOOST_CHECK(XUSD_SYMBOL(db).amount(10) / BTCM_SYMBOL(db).amount(1000) == orderbook.asks[0].order_price);
     BOOST_CHECK_EQUAL(10, orderbook.asks[0].quote.value);
     BOOST_CHECK_EQUAL(1000, orderbook.asks[0].base.value);
 
     orderbook = db_api.get_order_book_for_asset(bts.id, 1000);
     BOOST_CHECK_EQUAL("BTS", orderbook.base);
-    BOOST_CHECK_EQUAL("MBD", orderbook.quote);
+    BOOST_CHECK_EQUAL("XUSD", orderbook.quote);
     BOOST_CHECK(orderbook.bids.empty());
     BOOST_REQUIRE_EQUAL(3u, orderbook.asks.size());
-    BOOST_CHECK(MBD_SYMBOL(db).amount(200000) / bts.amount(100000) == orderbook.asks[0].order_price);
+    BOOST_CHECK(XUSD_SYMBOL(db).amount(200000) / bts.amount(100000) == orderbook.asks[0].order_price);
     BOOST_CHECK_EQUAL(200000, orderbook.asks[0].quote.value);
     BOOST_CHECK_EQUAL(100000, orderbook.asks[0].base.value);
 

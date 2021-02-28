@@ -36,7 +36,7 @@ namespace btcm { namespace chain {
 inline void validate_url(const string& url )
 {
    FC_ASSERT(url.size() < BTCM_MAX_URL_LENGTH );
-   FC_ASSERT(boost::starts_with( url, "ipfs://" ) );
+   FC_ASSERT(boost::starts_with( url, "bmfs://" ) );
    //TODO_BTCM - more checks...
 }
 

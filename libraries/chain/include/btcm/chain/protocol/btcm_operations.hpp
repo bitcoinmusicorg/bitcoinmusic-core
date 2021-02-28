@@ -51,7 +51,7 @@ struct content_reward_operation : public base_operation
          :payee(a),url(p),mbd_payout(s),vesting_payout(v){} //<Constructor
    string payee; //<Account receiving payment
    string url; //<URL of the content for which payment is made
-   asset  mbd_payout; //<MBD payout
+   asset  mbd_payout; //<XUSD payout
    asset  vesting_payout; //<Vesting payout
    void  validate()const { FC_ASSERT( false, "this is a virtual operation" ); }
 };
@@ -67,7 +67,7 @@ struct curate_reward_operation : public base_operation
 
    string curator;//<Account receiving payment
    string url;//<URL of the content for which payment is made
-   asset  mbd_payout;//<MBD payout
+   asset  mbd_payout;//<XUSD payout
    asset  vesting_payout;//<Vesting payout
    void   validate()const { FC_ASSERT( false, "this is a virtual operation" ); }
 };
@@ -83,7 +83,7 @@ struct playing_reward_operation : public base_operation
 
    string platform;//<Streaming platform receiving payment
    string url;//<URL of the content for which payment is made
-   asset  mbd_payout;//<MBD payout
+   asset  mbd_payout;//<XUSD payout
    asset  vesting_payout;//<Vesting payout
    void   validate()const { FC_ASSERT( false, "this is a virtual operation" ); }
 };

@@ -34,8 +34,8 @@ market_ticker market_history_api_impl::get_ticker() const
 
    if( itr != bucket_idx.end() )
    {
-      auto open = ( asset( itr->open_mbd, MBD_SYMBOL ) / asset( itr->open_btcm, BTCM_SYMBOL ) ).to_real();
-      result.latest = ( asset( itr->close_mbd, MBD_SYMBOL ) / asset( itr->close_btcm, BTCM_SYMBOL ) ).to_real();
+      auto open = ( asset( itr->open_mbd, XUSD_SYMBOL ) / asset( itr->open_btcm, BTCM_SYMBOL ) ).to_real();
+      result.latest = ( asset( itr->close_mbd, XUSD_SYMBOL ) / asset( itr->close_btcm, BTCM_SYMBOL ) ).to_real();
       result.percent_change = ( ( result.latest - open ) / open ) * 100;
    }
    else
@@ -85,21 +85,21 @@ order_book market_history_api_impl::get_order_book( uint32_t limit ) const
    FC_ASSERT( limit <= 500 );
 
    const auto& order_idx = app.chain_database()->get_index_type< btcm::chain::limit_order_index >().indices().get< btcm::chain::by_price >();
-   auto itr = order_idx.lower_bound( price::max( MBD_SYMBOL, BTCM_SYMBOL ) );
+   auto itr = order_idx.lower_bound( price::max( XUSD_SYMBOL, BTCM_SYMBOL ) );
 
    order_book result;
 
-   while( itr != order_idx.end() && itr->sell_price.base.asset_id == MBD_SYMBOL && result.bids.size() < limit )
+   while( itr != order_idx.end() && itr->sell_price.base.asset_id == XUSD_SYMBOL && result.bids.size() < limit )
    {
       order cur;
       cur.price = itr->sell_price.base.to_real() / itr->sell_price.quote.to_real();
-      cur.btcm = ( asset( itr->for_sale, MBD_SYMBOL ) * itr->sell_price ).amount;
+      cur.btcm = ( asset( itr->for_sale, XUSD_SYMBOL ) * itr->sell_price ).amount;
       cur.mbd = itr->for_sale;
       result.bids.push_back( cur );
       ++itr;
    }
 
-   itr = order_idx.lower_bound( price::max( BTCM_SYMBOL, MBD_SYMBOL ) );
+   itr = order_idx.lower_bound( price::max( BTCM_SYMBOL, XUSD_SYMBOL ) );
 
    while( itr != order_idx.end() && itr->sell_price.base.asset_id == BTCM_SYMBOL && result.asks.size() < limit )
    {

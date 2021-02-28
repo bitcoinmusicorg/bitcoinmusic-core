@@ -867,7 +867,7 @@ public:
          auto accounts = result.as<vector<account_object>>( GRAPHENE_MAX_NESTED_OBJECTS );
          asset total_btcm;
          asset total_vest(0, VESTS_SYMBOL );
-         asset total_mbd(0, MBD_SYMBOL );
+         asset total_mbd(0, XUSD_SYMBOL );
          for( const auto& a : accounts ) {
             total_btcm += a.balance;
             total_vest  += a.vesting_shares;
@@ -919,17 +919,17 @@ public:
           ss << "\n=====================================================================================================\n";
           for( const auto& o : orders ) {
              share_type for_sale; 
-             if (o.sell_price.base.asset_id == MBD_SYMBOL )
+             if (o.sell_price.base.asset_id == XUSD_SYMBOL )
              {
                 for_sale = o.for_sale * o.sell_price.quote.amount / o.sell_price.base.amount;
              }else {
                 for_sale = o.for_sale;
              }
              ss << ' ' << setw( 10 ) << o.orderid;
-             ss << ' ' << setw( 10 ) << get_asset_symbol(o.sell_price.base.asset_id == MBD_SYMBOL ? o.sell_price.quote.asset_id : o.sell_price.base.asset_id );
+             ss << ' ' << setw( 10 ) << get_asset_symbol(o.sell_price.base.asset_id == XUSD_SYMBOL ? o.sell_price.quote.asset_id : o.sell_price.base.asset_id );
              ss << ' ' << setw( 10 ) << o.real_price;
              ss << ' ' << setw( 10 ) << fc::variant( for_sale, 1 ).as_string();
-             ss << ' ' << setw( 10 ) << (o.sell_price.base.asset_id == MBD_SYMBOL ? "BUY" : "SELL");
+             ss << ' ' << setw( 10 ) << (o.sell_price.base.asset_id == XUSD_SYMBOL ? "BUY" : "SELL");
              ss << "\n";
           }
           return ss.str();
@@ -964,7 +964,7 @@ public:
                ss
                   << ' ' << setw( spacing ) << bid_sum.value
                   << ' ' << setw( spacing ) << asset( orders.bids[i].quote, orders.bids[i].order_price.quote.asset_id ).to_string() << orders.base
-                  << ' ' << setw( spacing ) << asset( orders.bids[i].base, MBD_SYMBOL ).to_string() << orders.quote
+                  << ' ' << setw( spacing ) << asset( orders.bids[i].base, XUSD_SYMBOL ).to_string() << orders.quote
                   << ' ' << setw( spacing ) << orders.bids[i].real_price; //(~orders.bids[i].order_price).to_real();
             }
             else
@@ -978,7 +978,7 @@ public:
             {
                ask_sum += orders.asks[i].base;
                ss << ' ' << setw( spacing ) << orders.asks[i].real_price
-                  << ' ' << setw( spacing ) << asset( orders.asks[i].base, MBD_SYMBOL ).to_string() << orders.quote
+                  << ' ' << setw( spacing ) << asset( orders.asks[i].base, XUSD_SYMBOL ).to_string() << orders.quote
                   << ' ' << setw( spacing ) << asset( orders.asks[i].quote, orders.asks[i].order_price.quote.asset_id ).to_string() << orders.base
                   << ' ' << setw( spacing ) << ask_sum.value;
             }
@@ -1090,20 +1090,23 @@ public:
       try {
          account_object issuer_account = get_account( issuer );
          FC_ASSERT(!find_asset(asset_name).valid(), "Asset with that symbol already exists!");
+         auto feed = _remote_db->get_feed_history().actual_median_history;
+         FC_ASSERT(!feed.is_null(), "No feed price, can't create assets");
          asset_create_operation create_op;
-         create_op.fee = asset( asset_name.find( '.' ) != std::string::npos
+         create_op.fee = asset(asset_name.find( '.' ) != std::string::npos
                                     ? BTCM_SUBASSET_CREATION_FEE : BTCM_ASSET_CREATION_FEE,
-                                BTCM_SYMBOL );
+                                XUSD_SYMBOL);
          create_op.issuer = issuer_account.name;
-         create_op.symbol = asset_name;
+         create_op.symbol = std::move(asset_name);
          create_op.precision = precision;
+         create_op.common_options.description = std::move(description);
          create_op.common_options.max_supply=max_supply;
          create_op.common_options.flags=override_authority|disable_confidential;
          signed_transaction tx;
          tx.operations.push_back( create_op );
          tx.validate();
          return sign_transaction( tx, broadcast );
-      }FC_CAPTURE_AND_RETHROW( (issuer)(asset_name)(description)(max_supply) ) 
+      }FC_CAPTURE_AND_RETHROW( (issuer)(asset_name)(description)(precision)(max_supply) )
    }
 
 

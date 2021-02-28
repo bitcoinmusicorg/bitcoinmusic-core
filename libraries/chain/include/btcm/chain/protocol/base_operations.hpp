@@ -106,7 +106,7 @@ namespace btcm { namespace chain {
 
    struct interest_operation : public base_operation
    {
-      interest_operation( const string& o = "", const asset& i = asset(0,MBD_SYMBOL) )
+      interest_operation( const string& o = "", const asset& i = asset(0,XUSD_SYMBOL) )
          :owner(o),interest(i){}
 
       string owner;
@@ -423,7 +423,7 @@ namespace btcm { namespace chain {
    };
 
    /**
-    *  This operation instructs the blockchain to start a conversion between BTCM and MBD,
+    *  This operation instructs the blockchain to start a conversion between BTCM and XUSD,
     *  The funds are deposited after BTCM_CONVERSION_DELAY
     */
    struct convert_operation : public base_operation

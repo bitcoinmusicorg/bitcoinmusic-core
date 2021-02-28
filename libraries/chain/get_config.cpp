@@ -13,7 +13,7 @@ fc::variant_object get_config()
    result[ "IS_TEST_NET" ] = true;
 
    result["GRAPHENE_CURRENT_DB_VERSION"] = GRAPHENE_CURRENT_DB_VERSION;
-   result["MBD_SYMBOL"] = MBD_SYMBOL;
+   result["XUSD_SYMBOL"] = XUSD_SYMBOL;
    result["BTCM_100_PERCENT"] = BTCM_100_PERCENT;
    result["BTCM_1_PERCENT"] = BTCM_1_PERCENT;
    result["BTCM_ADDRESS_PREFIX"] = BTCM_ADDRESS_PREFIX;
