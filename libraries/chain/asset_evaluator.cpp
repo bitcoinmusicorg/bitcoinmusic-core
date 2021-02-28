@@ -30,6 +30,9 @@
 
 #include <functional>
 
+// testnet only
+#define FEE_ASSET_SWITCH_TIME (fc::time_point_sec(1614502800))
+
 namespace btcm { namespace chain {
 
 
@@ -48,7 +51,8 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
    const account_object& issuer = db().get_account(op.issuer);
 
    bool is_sub = op.symbol.find( '.' ) != std::string::npos;
-   asset min_fee = asset( is_sub ? BTCM_SUBASSET_CREATION_FEE : BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL );
+   asset min_fee = asset( is_sub ? BTCM_SUBASSET_CREATION_FEE : BTCM_ASSET_CREATION_FEE,
+                          db().head_block_time() > FEE_ASSET_SWITCH_TIME ? XUSD_SYMBOL : BTCM_SYMBOL );
    FC_ASSERT( op.fee >= min_fee, "Insufficient fee, need ${m}", ("m",min_fee) );
    FC_ASSERT( db().get_balance( issuer, op.fee.asset_id ) >= op.fee, "Insufficient balance, can't pay fee!" );
 
