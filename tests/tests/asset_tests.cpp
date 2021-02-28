@@ -41,12 +41,18 @@ BOOST_AUTO_TEST_CASE(create_asset_test)
 
     fund( "federation", 5000000000 );
 
+    set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
+
     trx.clear();
     trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
 
     {
+        convert_operation cop;
+        cop.owner = "federation";
+        cop.amount = asset(BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+        trx.operations.emplace_back(std::move(cop));
         asset_create_operation aco;
-        aco.fee = asset(BTCM_ASSET_CREATION_FEE);
+        aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
         aco.issuer = "federation";
         aco.symbol = "BTS";
         aco.precision = 5;
@@ -122,6 +128,8 @@ BOOST_AUTO_TEST_CASE(trade_asset_test)
     fund("bob");
     fund( "federation", 5000000000 );
     
+    set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
+
     // give bob some fake XUSD
     generate_block();
     db.modify( bob_id(db), [] ( account_object& acct ) {
@@ -138,8 +146,12 @@ BOOST_AUTO_TEST_CASE(trade_asset_test)
     trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
 
     {
+        convert_operation cop;
+        cop.owner = "federation";
+        cop.amount = asset(BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+        trx.operations.emplace_back(std::move(cop));
         asset_create_operation aco;
-        aco.fee = asset(BTCM_ASSET_CREATION_FEE);
+        aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
         aco.issuer = "federation";
         aco.symbol = "BTS";
         aco.precision = 5;
@@ -207,12 +219,18 @@ BOOST_AUTO_TEST_CASE(trade_assets_test)
     vest("bob", 50000);
     fund( "federation", 5000000000 );
 
+    set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
+
     trx.clear();
     trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
 
     {
+        convert_operation cop;
+        cop.owner = "federation";
+        cop.amount = asset(2 * BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+        trx.operations.emplace_back(std::move(cop));
         asset_create_operation aco;
-        aco.fee = asset(BTCM_ASSET_CREATION_FEE);
+        aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
         aco.issuer = "federation";
         aco.symbol = "BTS";
         aco.precision = 5;

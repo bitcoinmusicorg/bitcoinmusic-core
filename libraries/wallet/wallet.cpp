@@ -1095,7 +1095,7 @@ public:
          asset_create_operation create_op;
          create_op.fee = asset(asset_name.find( '.' ) != std::string::npos
                                     ? BTCM_SUBASSET_CREATION_FEE : BTCM_ASSET_CREATION_FEE,
-                                BTCM_SYMBOL);
+                                XUSD_SYMBOL);
          create_op.issuer = issuer_account.name;
          create_op.symbol = std::move(asset_name);
          create_op.precision = precision;
