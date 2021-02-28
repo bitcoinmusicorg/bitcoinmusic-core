@@ -188,13 +188,7 @@ namespace btcm { namespace chain {
    void convert_operation::validate()const
    {
       FC_ASSERT( is_valid_account_name( owner ) );
-      /// only allow conversion from XUSD to BTCM, allowing the opposite can enable traders to abuse
-      /// market fluxuations through converting large quantities without moving the price.
-      if( is_asset_type( amount, BTCM_SYMBOL ) )
-         FC_ASSERT( "federation" == owner || "federation.asset" == owner,
-                    "Only federation and federation.asset accounts can convert XSD -> xUSD!" );
-      else
-         FC_ASSERT( is_asset_type( amount, XUSD_SYMBOL ) );
+      FC_ASSERT( is_asset_type( amount, BTCM_SYMBOL ) );
       FC_ASSERT( amount.amount > 0 );
    }
 

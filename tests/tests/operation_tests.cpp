@@ -2197,7 +2197,7 @@ BOOST_AUTO_TEST_CASE( convert_authorities )
 
       convert_operation op;
       op.owner = "alice";
-      op.amount = ASSET( "2.500000 2.28.2" );
+      op.amount = ASSET( "2.500000 2.28.0" );
 
       signed_transaction tx;
       tx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
@@ -2245,8 +2245,6 @@ BOOST_AUTO_TEST_CASE( convert_apply )
       signed_transaction tx;
       tx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
 
-      const auto& convert_request_idx = db.get_index_type< convert_index >().indices().get< by_owner >();
-
       set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
 
       convert( "alice", ASSET( "2.500000 2.28.0" ) );
@@ -2266,9 +2264,9 @@ BOOST_AUTO_TEST_CASE( convert_apply )
       BOOST_REQUIRE_EQUAL( new_bob.mbd_balance.amount.value, ASSET( "7.000 2.28.2" ).amount.value );
       validate_database();
 
-      BOOST_TEST_MESSAGE( "--- Test failure when account does not have the required XUSD" );
+      BOOST_TEST_MESSAGE( "--- Test failure when trying to convert XUSD into BTCM" );
       op.owner = "alice";
-      op.amount = ASSET( "5.000 2.28.2" );
+      op.amount = ASSET( "2.000 2.28.2" );
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
@@ -2287,9 +2285,9 @@ BOOST_AUTO_TEST_CASE( convert_apply )
       tx.sign( alice_private_key, db.get_chain_id() );
       BTCM_REQUIRE_THROW( db.push_transaction( tx, 0 ), fc::assert_exception );
 
-      BOOST_TEST_MESSAGE( "--- Test success converting XUSD to BTCM" );
+      BOOST_TEST_MESSAGE( "--- Test success converting BTCM to XUSD" );
       op.owner = "bob";
-      op.amount = ASSET( "3.000 2.28.2" );
+      op.amount = ASSET( "3.000 2.28.0" );
       tx.operations.clear();
       tx.signatures.clear();
       tx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
@@ -2297,81 +2295,13 @@ BOOST_AUTO_TEST_CASE( convert_apply )
       tx.sign( bob_private_key, db.get_chain_id() );
       db.push_transaction( tx, 0 );
 
-      BOOST_REQUIRE_EQUAL( new_bob.balance.amount.value, ASSET( "3.000 2.28.0" ).amount.value );
-      BOOST_REQUIRE_EQUAL( new_bob.mbd_balance.amount.value, ASSET( "4.000 2.28.2" ).amount.value );
+      BOOST_REQUIRE_EQUAL( new_bob.balance.amount.value, ASSET( "0.000 2.28.0" ).amount.value );
+      BOOST_REQUIRE_EQUAL( new_bob.mbd_balance.amount.value, ASSET( "10.000 2.28.2" ).amount.value );
 
-      auto convert_request = convert_request_idx.find( std::make_tuple( op.owner, op.requestid ) );
-      BOOST_REQUIRE( convert_request != convert_request_idx.end() );
-      BOOST_REQUIRE_EQUAL( convert_request->owner, op.owner );
-      BOOST_REQUIRE_EQUAL( convert_request->requestid, op.requestid );
-      BOOST_REQUIRE_EQUAL( convert_request->amount.amount.value, op.amount.amount.value );
-      //BOOST_REQUIRE_EQUAL( convert_request->premium, 100000 );
-      BOOST_REQUIRE( convert_request->conversion_date == db.head_block_time() + BTCM_CONVERSION_DELAY );
-
-      BOOST_TEST_MESSAGE( "--- Test failure from repeated id" );
-      op.amount = ASSET( "2.000 2.28.0" );
-      tx.operations.clear();
-      tx.signatures.clear();
-      tx.operations.push_back( op );
-      tx.sign( alice_private_key, db.get_chain_id() );
-      BTCM_REQUIRE_THROW( db.push_transaction( tx, 0 ), fc::assert_exception );
-
-      BOOST_REQUIRE_EQUAL( new_bob.balance.amount.value, ASSET( "3.000 2.28.0" ).amount.value );
-      BOOST_REQUIRE_EQUAL( new_bob.mbd_balance.amount.value, ASSET( "4.000 2.28.2" ).amount.value );
-
-      convert_request = convert_request_idx.find( std::make_tuple( op.owner, op.requestid ) );
-      BOOST_REQUIRE( convert_request != convert_request_idx.end() );
-      BOOST_REQUIRE_EQUAL( convert_request->owner, op.owner );
-      BOOST_REQUIRE_EQUAL( convert_request->requestid, op.requestid );
-      BOOST_REQUIRE_EQUAL( convert_request->amount.amount.value, ASSET( "3.000 2.28.2" ).amount.value );
-      //BOOST_REQUIRE_EQUAL( convert_request->premium, 100000 );
-      BOOST_REQUIRE( convert_request->conversion_date == db.head_block_time() + BTCM_CONVERSION_DELAY );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
 }
-
-BOOST_FIXTURE_TEST_CASE( convert_forward, database_fixture )
-{ try {
-
-   initialize_clean( 5 );
-
-   ACTORS( (alice)(federation) );
-   const account_id_type fed_asset_id = account_create( "federation.asset", federation_public_key ).id;
-   fund( "alice", 10000000 );
-   fund( "federation", 10000000 );
-   fund( "federation.asset", 10000000 );
-
-   // fake a price feed
-   generate_block();
-   db.modify( db.get_feed_history(), [] ( feed_history_object& fho ){
-      fho.effective_median_history = fho.actual_median_history = asset(1) / asset(1, XUSD_SYMBOL);
-   });
-   trx.clear();
-   trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
-
-   // alice can't convert XSD -> xUSD
-   convert_operation op;
-   op.owner = "alice";
-   op.amount = asset(1000);
-   trx.operations.emplace_back(op);
-   BOOST_CHECK_THROW( PUSH_TX( db, trx, database::skip_transaction_signatures ), fc::assert_exception );
-   trx.clear();
-
-   // but federation can
-   op.owner = "federation";
-   trx.operations.emplace_back(op);
-   PUSH_TX( db, trx, database::skip_transaction_signatures );
-   trx.clear();
-   BOOST_CHECK_EQUAL( federation_id(db).mbd_balance.amount.value, ASSET( "0.001 2.28.2" ).amount.value );
-
-   // and federation.asset can
-   op.owner = "federation.asset";
-   trx.operations.emplace_back(op);
-   PUSH_TX( db, trx, database::skip_transaction_signatures );
-   trx.clear();
-   BOOST_CHECK_EQUAL( fed_asset_id(db).mbd_balance.amount.value, ASSET( "0.001 2.28.2" ).amount.value );
-} FC_LOG_AND_RETHROW() }
 
 BOOST_AUTO_TEST_CASE( limit_order_create_authorities )
 {

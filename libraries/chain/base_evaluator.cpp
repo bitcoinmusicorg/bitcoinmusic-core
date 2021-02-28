@@ -557,32 +557,20 @@ void convert_evaluator::do_apply( const convert_operation& o )
   const auto& fhistory = db().get_feed_history();
   FC_ASSERT( !fhistory.effective_median_history.is_null() );
 
-  if( o.amount.asset_id == BTCM_SYMBOL )
+  const asset amount_to_issue = o.amount * fhistory.effective_median_history;
+
+  db().adjust_balance( owner, amount_to_issue );
+
+  db().push_applied_operation( fill_convert_request_operation ( o.owner, o.requestid, o.amount, amount_to_issue ) );
+
+  db().modify( db().get_dynamic_global_properties(),
+               [&o,&amount_to_issue,&fhistory]( dynamic_global_property_object& p )
   {
-     const asset amount_to_issue = o.amount * fhistory.effective_median_history;
-
-     db().adjust_balance( owner, amount_to_issue );
-
-     db().push_applied_operation( fill_convert_request_operation ( o.owner, o.requestid, o.amount, amount_to_issue ) );
-
-     db().modify( db().get_dynamic_global_properties(),
-                  [&o,&amount_to_issue,&fhistory]( dynamic_global_property_object& p )
-     {
-        p.current_supply -= o.amount;
-        p.current_mbd_supply += amount_to_issue;
-        p.virtual_supply -= o.amount;
-        p.virtual_supply += amount_to_issue * fhistory.effective_median_history;
-     } );
-  }
-  else
-     db().create<convert_request_object>( [&]( convert_request_object& obj )
-     {
-        obj.owner           = o.owner;
-        obj.requestid       = o.requestid;
-        obj.amount          = o.amount;
-        obj.conversion_date = db().head_block_time() + BTCM_CONVERSION_DELAY; // 1 week
-     });
-
+     p.current_supply -= o.amount;
+     p.current_mbd_supply += amount_to_issue;
+     p.virtual_supply -= o.amount;
+     p.virtual_supply += amount_to_issue * fhistory.effective_median_history;
+  } );
 }
 
 void limit_order_create_evaluator::do_apply( const limit_order_create_operation& o )
