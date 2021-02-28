@@ -746,7 +746,7 @@ BOOST_AUTO_TEST_CASE( asset_holders )
    fund( "bob", 10000 );
    fund( "federation", 5000000000 );
 
-   BOOST_CHECK(db_api.get_asset_holders(MBD_SYMBOL).empty());
+   BOOST_CHECK(db_api.get_asset_holders(XUSD_SYMBOL).empty());
    auto holders = db_api.get_asset_holders(BTCM_SYMBOL);
    BOOST_CHECK(!holders.empty());
    auto itr = holders.find(bob_id);

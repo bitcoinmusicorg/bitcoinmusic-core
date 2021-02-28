@@ -59,8 +59,8 @@ struct bucket_object : public abstract_object< bucket_object >
    static const uint8_t space_id = MARKET_HISTORY_SPACE_ID;
    static const uint8_t type_id = 1;
 
-   price high()const { return asset( high_mbd, MBD_SYMBOL ) / asset( high_btcm, BTCM_SYMBOL ); }
-   price low()const { return asset( low_mbd, MBD_SYMBOL ) / asset( low_btcm, BTCM_SYMBOL ); }
+   price high()const { return asset( high_mbd, XUSD_SYMBOL ) / asset( high_btcm, BTCM_SYMBOL ); }
+   price low()const { return asset( low_mbd, XUSD_SYMBOL ) / asset( low_btcm, BTCM_SYMBOL ); }
 
    fc::time_point_sec   open;
    uint32_t             seconds = 0;

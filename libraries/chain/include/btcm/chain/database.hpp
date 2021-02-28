@@ -261,7 +261,7 @@ namespace btcm { namespace chain {
           */
          uint32_t get_slot_at_time(fc::time_point_sec when)const;
 
-         /** @return the MBD created and deposited to_account, may return BTCM if there is no median feed */
+         /** @return the XUSD created and deposited to_account, may return BTCM if there is no median feed */
          asset create_mbd(const account_object &to_account, asset btcm);
          asset create_vesting( const account_object& to_account, asset btcm );
 

@@ -947,7 +947,7 @@ vector<content_object> database_api_impl::list_content_by_uploader( const string
 
 order_book database_api::get_order_book( uint32_t limit )const
 {
-   return get_order_book_for_assets(BTCM_SYMBOL, MBD_SYMBOL, limit);
+   return get_order_book_for_assets(BTCM_SYMBOL, XUSD_SYMBOL, limit);
 }
 
 vector<extended_limit_order> database_api::get_open_orders( string owner )const {
@@ -968,7 +968,7 @@ vector<extended_limit_order> database_api::get_open_orders( string owner )const 
 
 order_book database_api::get_order_book_for_asset( asset_id_type asset_id, uint32_t limit )const
 {
-   return get_order_book_for_assets(asset_id, MBD_SYMBOL, limit);
+   return get_order_book_for_assets(asset_id, XUSD_SYMBOL, limit);
 }
 order_book database_api::get_order_book_for_assets( asset_id_type base_id, asset_id_type quote_id, uint32_t limit )const
 { 
@@ -1110,12 +1110,12 @@ asset_object database_api_impl::get_asset(asset_id_type asset_id)const
 map<account_id_type, share_type> database_api_impl::get_asset_holders(asset_id_type asset_id)const
 {
    map<account_id_type, share_type> result;
-   if( asset_id == BTCM_SYMBOL || asset_id == MBD_SYMBOL || asset_id == VESTS_SYMBOL )
+   if( asset_id == BTCM_SYMBOL || asset_id == XUSD_SYMBOL || asset_id == VESTS_SYMBOL )
    {
       for( const auto& acct : _db.get_index_type<account_index>().indices() )
       {
          share_type balance = asset_id == BTCM_SYMBOL ? acct.balance.amount
-                                : asset_id == MBD_SYMBOL ? acct.mbd_balance.amount
+                                : asset_id == XUSD_SYMBOL ? acct.mbd_balance.amount
                                    : acct.vesting_shares.amount;
          if( balance > 0 )
             result[acct.id] = balance;

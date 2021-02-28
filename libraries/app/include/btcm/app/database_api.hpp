@@ -37,7 +37,7 @@ struct order
 struct order_book
 {
    string               base = BTCM_SYMBOL_STRING;
-   string               quote = MBD_SYMBOL_STRING;
+   string               quote = XUSD_SYMBOL_STRING;
    vector< order >      asks;
    vector< order >      bids;
 };
@@ -440,13 +440,13 @@ class database_api
       ////////////
 
       /**
-       * @breif Gets the current order book for BTCM:MBD market
+       * @breif Gets the current order book for BTCM:XUSD market
        * @param limit Maximum number of orders for each side of the spread to return -- Must not exceed 1000
        * @return Order book
        */
       order_book get_order_book( uint32_t limit = 1000 )const;
       /**
-       * Gets the current order book for the given asset:MBD market
+       * Gets the current order book for the given asset:XUSD market
        * @param asset_id Asset ID to look for
        * @param limit Maximum number of orders for each side of the spread to return -- Must not exceed 1000
        * @return Order book

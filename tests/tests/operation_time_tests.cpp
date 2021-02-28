@@ -294,13 +294,13 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
          txs.push_back( signed_transaction() );
       }
 
-      ops[0].exchange_rate = price( asset( 100000, BTCM_SYMBOL ), asset( 1000, MBD_SYMBOL ) );
-      ops[1].exchange_rate = price( asset( 105000, BTCM_SYMBOL ), asset( 1000, MBD_SYMBOL ) );
-      ops[2].exchange_rate = price( asset(  98000, BTCM_SYMBOL ), asset( 1000, MBD_SYMBOL ) );
-      ops[3].exchange_rate = price( asset(  97000, BTCM_SYMBOL ), asset( 1000, MBD_SYMBOL ) );
-      ops[4].exchange_rate = price( asset(  99000, BTCM_SYMBOL ), asset( 1000, MBD_SYMBOL ) );
-      ops[5].exchange_rate = price( asset(  97500, BTCM_SYMBOL ), asset( 1000, MBD_SYMBOL ) );
-      ops[6].exchange_rate = price( asset( 102000, BTCM_SYMBOL ), asset( 1000, MBD_SYMBOL ) );
+      ops[0].exchange_rate = price( asset( 100000, BTCM_SYMBOL ), asset( 1000, XUSD_SYMBOL ) );
+      ops[1].exchange_rate = price( asset( 105000, BTCM_SYMBOL ), asset( 1000, XUSD_SYMBOL ) );
+      ops[2].exchange_rate = price( asset(  98000, BTCM_SYMBOL ), asset( 1000, XUSD_SYMBOL ) );
+      ops[3].exchange_rate = price( asset(  97000, BTCM_SYMBOL ), asset( 1000, XUSD_SYMBOL ) );
+      ops[4].exchange_rate = price( asset(  99000, BTCM_SYMBOL ), asset( 1000, XUSD_SYMBOL ) );
+      ops[5].exchange_rate = price( asset(  97500, BTCM_SYMBOL ), asset( 1000, XUSD_SYMBOL ) );
+      ops[6].exchange_rate = price( asset( 102000, BTCM_SYMBOL ), asset( 1000, XUSD_SYMBOL ) );
 
       for( int i = 0; i < 7; i++ )
       {
@@ -316,9 +316,9 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
       BOOST_TEST_MESSAGE( "Get feed history object" );
       feed_history_object feed_history = db.get_feed_history();
       BOOST_TEST_MESSAGE( "Check state" );
-      BOOST_REQUIRE( feed_history.actual_median_history == price( asset( 99000, BTCM_SYMBOL), asset( 1000, MBD_SYMBOL ) ) );
-      BOOST_REQUIRE( feed_history.effective_median_history == price( asset( 99000, BTCM_SYMBOL), asset( 1000, MBD_SYMBOL ) ) );
-      BOOST_REQUIRE( feed_history.price_history[ 0 ] == price( asset( 99000, BTCM_SYMBOL), asset( 1000, MBD_SYMBOL ) ) );
+      BOOST_REQUIRE( feed_history.actual_median_history == price( asset( 99000, BTCM_SYMBOL), asset( 1000, XUSD_SYMBOL ) ) );
+      BOOST_REQUIRE( feed_history.effective_median_history == price( asset( 99000, BTCM_SYMBOL), asset( 1000, XUSD_SYMBOL ) ) );
+      BOOST_REQUIRE( feed_history.price_history[ 0 ] == price( asset( 99000, BTCM_SYMBOL), asset( 1000, XUSD_SYMBOL ) ) );
       validate_database();
 
       for ( int i = 0; i < 23; i++ )
@@ -329,7 +329,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
          {
             txs[j].operations.clear();
             txs[j].signatures.clear();
-            ops[j].exchange_rate = price( ops[j].exchange_rate.base, asset( ops[j].exchange_rate.quote.amount + 10, MBD_SYMBOL ) );
+            ops[j].exchange_rate = price( ops[j].exchange_rate.base, asset( ops[j].exchange_rate.quote.amount + 10, XUSD_SYMBOL ) );
             txs[j].set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
             txs[j].operations.push_back( ops[j] );
             txs[j].sign( keys[j], db.get_chain_id() );
@@ -387,13 +387,13 @@ BOOST_AUTO_TEST_CASE( convert_delay )
 
       //generate_blocks( db.get_comment( "alice", "test" ).cashout_time, true );
 
-      auto start_balance = asset( db.get_comment( "alice", "test" ).total_payout_value.amount / 2, MBD_SYMBOL );
+      auto start_balance = asset( db.get_comment( "alice", "test" ).total_payout_value.amount / 2, XUSD_SYMBOL );
 
       BOOST_TEST_MESSAGE( "Setup conversion to TESTS" );
       tx.operations.clear();
       tx.signatures.clear();
       op.owner = "alice";
-      op.amount = asset( 2000000, MBD_SYMBOL );
+      op.amount = asset( 2000000, XUSD_SYMBOL );
       op.requestid = 2;
       tx.operations.push_back( op );
       tx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );

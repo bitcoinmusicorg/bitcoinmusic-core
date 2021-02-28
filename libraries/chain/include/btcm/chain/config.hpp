@@ -13,7 +13,7 @@
 #define BTCM_ADDRESS_PREFIX                  "BTCM"
 #define BTCM_SYMBOL_STRING   (BASE_SYMBOL)
 #define VESTS_SYMBOL_STRING   "VESTS"
-#define MBD_SYMBOL_STRING     "MBD"
+#define XUSD_SYMBOL_STRING     "XUSD"
 
 #define NULL_SYMBOL  (uint64_t(3) )
 
@@ -135,7 +135,7 @@
 #define BTCM_CURATION_DURATION                  (uint64_t(14*24*60*60))
 
 
-#define BTCM_MIN_PAYOUT_SBD                  (asset(20,MBD_SYMBOL))
+#define BTCM_MIN_PAYOUT_SBD                  (asset(20,XUSD_SYMBOL))
 
 #define BTCM_MIN_ACCOUNT_NAME_LENGTH          3
 #define BTCM_MAX_ACCOUNT_NAME_LENGTH         16

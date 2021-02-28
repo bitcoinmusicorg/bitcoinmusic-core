@@ -33,8 +33,8 @@ namespace btcm { namespace chain {
          asset       virtual_supply             = asset( 0, BTCM_SYMBOL );
          asset       current_supply             = asset( 0, BTCM_SYMBOL );
          asset       confidential_supply        = asset( 0, BTCM_SYMBOL ); ///< total asset held in confidential balances
-         asset       current_mbd_supply         = asset( 0, MBD_SYMBOL );
-         asset       confidential_mbd_supply    = asset( 0, MBD_SYMBOL ); ///< total asset held in confidential balances
+         asset       current_mbd_supply         = asset( 0, XUSD_SYMBOL );
+         asset       confidential_mbd_supply    = asset( 0, XUSD_SYMBOL ); ///< total asset held in confidential balances
          asset       total_vesting_fund_btcm    = asset( 0, BTCM_SYMBOL );
          asset       total_vesting_shares       = asset( 0, VESTS_SYMBOL );
          asset       total_reward_fund_btcm     = asset( 0, BTCM_SYMBOL );

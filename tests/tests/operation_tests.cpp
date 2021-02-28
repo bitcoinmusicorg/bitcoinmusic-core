@@ -2266,7 +2266,7 @@ BOOST_AUTO_TEST_CASE( convert_apply )
       BOOST_REQUIRE_EQUAL( new_bob.mbd_balance.amount.value, ASSET( "7.000 2.28.2" ).amount.value );
       validate_database();
 
-      BOOST_TEST_MESSAGE( "--- Test failure when account does not have the required MBD" );
+      BOOST_TEST_MESSAGE( "--- Test failure when account does not have the required XUSD" );
       op.owner = "alice";
       op.amount = ASSET( "5.000 2.28.2" );
       tx.operations.clear();
@@ -2287,7 +2287,7 @@ BOOST_AUTO_TEST_CASE( convert_apply )
       tx.sign( alice_private_key, db.get_chain_id() );
       BTCM_REQUIRE_THROW( db.push_transaction( tx, 0 ), fc::assert_exception );
 
-      BOOST_TEST_MESSAGE( "--- Test success converting MBD to BTCM" );
+      BOOST_TEST_MESSAGE( "--- Test success converting XUSD to BTCM" );
       op.owner = "bob";
       op.amount = ASSET( "3.000 2.28.2" );
       tx.operations.clear();
@@ -2345,7 +2345,7 @@ BOOST_FIXTURE_TEST_CASE( convert_forward, database_fixture )
    // fake a price feed
    generate_block();
    db.modify( db.get_feed_history(), [] ( feed_history_object& fho ){
-      fho.effective_median_history = fho.actual_median_history = asset(1) / asset(1, MBD_SYMBOL);
+      fho.effective_median_history = fho.actual_median_history = asset(1) / asset(1, XUSD_SYMBOL);
    });
    trx.clear();
    trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
@@ -2492,7 +2492,7 @@ BOOST_AUTO_TEST_CASE( limit_order_create_apply )
       BOOST_REQUIRE_EQUAL( limit_order->orderid, op.orderid );
       BOOST_REQUIRE( limit_order->for_sale == op.amount_to_sell.amount );
       BOOST_REQUIRE( limit_order->sell_price == price( op.amount_to_sell / op.min_to_receive ) );
-      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, MBD_SYMBOL ) );
+      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, XUSD_SYMBOL ) );
       BOOST_REQUIRE_EQUAL( alice.balance.amount.value, ASSET( "990.000 2.28.0" ).amount.value );
       BOOST_REQUIRE_EQUAL( alice.mbd_balance.amount.value, ASSET( "0.000 2.28.2" ).amount.value );
       validate_database();
@@ -2512,7 +2512,7 @@ BOOST_AUTO_TEST_CASE( limit_order_create_apply )
       BOOST_REQUIRE_EQUAL( limit_order->orderid, op.orderid );
       BOOST_REQUIRE( limit_order->for_sale == 10000000 );
       BOOST_REQUIRE( limit_order->sell_price == price( ASSET( "10.000 2.28.0" ), op.min_to_receive ) );
-      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, MBD_SYMBOL ) );
+      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, XUSD_SYMBOL ) );
       BOOST_REQUIRE_EQUAL( alice.balance.amount.value, ASSET( "990.000 2.28.0" ).amount.value );
       BOOST_REQUIRE_EQUAL( alice.mbd_balance.amount.value, ASSET( "0.000 2.28.2" ).amount.value );
       validate_database();
@@ -2556,7 +2556,7 @@ BOOST_AUTO_TEST_CASE( limit_order_create_apply )
       BOOST_REQUIRE_EQUAL( limit_order->orderid, op.orderid );
       BOOST_REQUIRE( limit_order->for_sale == 5000000 );
       BOOST_REQUIRE( limit_order->sell_price == price( ASSET( "10.000 2.28.0" ), ASSET( "15.000 2.28.2" ) ) );
-      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, MBD_SYMBOL ) );
+      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, XUSD_SYMBOL ) );
       BOOST_REQUIRE( limit_order_idx.find( std::make_tuple( "bob", op.orderid ) ) == limit_order_idx.end() );
       BOOST_REQUIRE_EQUAL( alice.balance.amount.value, ASSET( "990.000 2.28.0" ).amount.value );
       BOOST_REQUIRE_EQUAL( alice.mbd_balance.amount.value, ASSET( "7.500000 2.28.2" ).amount.value );
@@ -2586,7 +2586,7 @@ BOOST_AUTO_TEST_CASE( limit_order_create_apply )
       BOOST_REQUIRE_EQUAL( limit_order->orderid, 1 );
       BOOST_REQUIRE_EQUAL( limit_order->for_sale.value, 7500000 );
       BOOST_REQUIRE( limit_order->sell_price == price( ASSET( "15.000 2.28.2" ), ASSET( "10.000 2.28.0" ) ) );
-      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, MBD_SYMBOL ) );
+      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, XUSD_SYMBOL ) );
       BOOST_REQUIRE( limit_order_idx.find( std::make_tuple( "alice", 1 ) ) == limit_order_idx.end() );
       BOOST_REQUIRE_EQUAL( alice.balance.amount.value, ASSET( "990.000 2.28.0" ).amount.value );
       BOOST_REQUIRE_EQUAL( alice.mbd_balance.amount.value, ASSET( "15.000 2.28.2" ).amount.value );
@@ -2643,7 +2643,7 @@ BOOST_AUTO_TEST_CASE( limit_order_create_apply )
       BOOST_REQUIRE_EQUAL( limit_order->orderid, 4 );
       BOOST_REQUIRE_EQUAL( limit_order->for_sale.value, 1000000 );
       BOOST_REQUIRE( limit_order->sell_price == price( ASSET( "12.000 2.28.2" ), ASSET( "10.000 2.28.0" ) ) );
-      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, MBD_SYMBOL ) );
+      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, XUSD_SYMBOL ) );
       BOOST_REQUIRE_EQUAL( alice.balance.amount.value, ASSET( "975.000 2.28.0" ).amount.value );
       BOOST_REQUIRE_EQUAL( alice.mbd_balance.amount.value, ASSET( "33.500000 2.28.2" ).amount.value );
       BOOST_REQUIRE_EQUAL( bob.balance.amount.value, ASSET( "25.000 2.28.0" ).amount.value );
@@ -2690,7 +2690,7 @@ BOOST_AUTO_TEST_CASE( limit_order_create_apply )
       BOOST_REQUIRE_EQUAL( limit_order->orderid, 5 );
       BOOST_REQUIRE_EQUAL( limit_order->for_sale.value, 9090910 );
       BOOST_REQUIRE( limit_order->sell_price == price( ASSET( "20.000 2.28.0" ), ASSET( "22.000 2.28.2" ) ) );
-      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, MBD_SYMBOL ) );
+      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, XUSD_SYMBOL ) );
       BOOST_REQUIRE_EQUAL( alice.balance.amount.value, ASSET( "955.000 2.28.0" ).amount.value );
       BOOST_REQUIRE_EQUAL( alice.mbd_balance.amount.value, ASSET( "45.500000 2.28.2" ).amount.value );
       BOOST_REQUIRE_EQUAL( bob.balance.amount.value, ASSET( "35.909090 2.28.0" ).amount.value );
@@ -2819,7 +2819,7 @@ BOOST_AUTO_TEST_CASE( limit_order_create2_apply )
       BOOST_REQUIRE_EQUAL( limit_order->orderid, op.orderid );
       BOOST_REQUIRE( limit_order->for_sale == op.amount_to_sell.amount );
       BOOST_REQUIRE( limit_order->sell_price == op.exchange_rate );
-      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, MBD_SYMBOL ) );
+      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, XUSD_SYMBOL ) );
       BOOST_REQUIRE_EQUAL( alice.balance.amount.value, ASSET( "990.000 2.28.0" ).amount.value );
       BOOST_REQUIRE_EQUAL( alice.mbd_balance.amount.value, ASSET( "0.000 2.28.2" ).amount.value );
       validate_database();
@@ -2839,7 +2839,7 @@ BOOST_AUTO_TEST_CASE( limit_order_create2_apply )
       BOOST_REQUIRE_EQUAL( limit_order->orderid, op.orderid );
       BOOST_REQUIRE( limit_order->for_sale == 10000000 );
       BOOST_REQUIRE( limit_order->sell_price == op.exchange_rate );
-      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, MBD_SYMBOL ) );
+      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, XUSD_SYMBOL ) );
       BOOST_REQUIRE_EQUAL( alice.balance.amount.value, ASSET( "990.000 2.28.0" ).amount.value );
       BOOST_REQUIRE_EQUAL( alice.mbd_balance.amount.value, ASSET( "0.000 2.28.2" ).amount.value );
       validate_database();
@@ -2883,7 +2883,7 @@ BOOST_AUTO_TEST_CASE( limit_order_create2_apply )
       BOOST_REQUIRE_EQUAL( limit_order->orderid, op.orderid );
       BOOST_REQUIRE( limit_order->for_sale == 5000000 );
       BOOST_REQUIRE( limit_order->sell_price == price( ASSET( "2.000 2.28.0" ), ASSET( "3.000 2.28.2" ) ) );
-      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, MBD_SYMBOL ) );
+      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, XUSD_SYMBOL ) );
       BOOST_REQUIRE( limit_order_idx.find( std::make_tuple( "bob", op.orderid ) ) == limit_order_idx.end() );
       BOOST_REQUIRE_EQUAL( alice.balance.amount.value, ASSET( "990.000 2.28.0" ).amount.value );
       BOOST_REQUIRE_EQUAL( alice.mbd_balance.amount.value, ASSET( "7.500000 2.28.2" ).amount.value );
@@ -2913,7 +2913,7 @@ BOOST_AUTO_TEST_CASE( limit_order_create2_apply )
       BOOST_REQUIRE_EQUAL( limit_order->orderid, 1 );
       BOOST_REQUIRE_EQUAL( limit_order->for_sale.value, 7500000 );
       BOOST_REQUIRE( limit_order->sell_price == price( ASSET( "3.000 2.28.2" ), ASSET( "2.000 2.28.0" ) ) );
-      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, MBD_SYMBOL ) );
+      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, XUSD_SYMBOL ) );
       BOOST_REQUIRE( limit_order_idx.find( std::make_tuple( "alice", 1 ) ) == limit_order_idx.end() );
       BOOST_REQUIRE_EQUAL( alice.balance.amount.value, ASSET( "990.000 2.28.0" ).amount.value );
       BOOST_REQUIRE_EQUAL( alice.mbd_balance.amount.value, ASSET( "15.000 2.28.2" ).amount.value );
@@ -2970,7 +2970,7 @@ BOOST_AUTO_TEST_CASE( limit_order_create2_apply )
       BOOST_REQUIRE_EQUAL( limit_order->orderid, 4 );
       BOOST_REQUIRE_EQUAL( limit_order->for_sale.value, 1000000 );
       BOOST_REQUIRE( limit_order->sell_price == op.exchange_rate );
-      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, MBD_SYMBOL ) );
+      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, XUSD_SYMBOL ) );
       BOOST_REQUIRE_EQUAL( alice.balance.amount.value, ASSET( "975.000 2.28.0" ).amount.value );
       BOOST_REQUIRE_EQUAL( alice.mbd_balance.amount.value, ASSET( "33.500000 2.28.2" ).amount.value );
       BOOST_REQUIRE_EQUAL( bob.balance.amount.value, ASSET( "25.000 2.28.0" ).amount.value );
@@ -3017,7 +3017,7 @@ BOOST_AUTO_TEST_CASE( limit_order_create2_apply )
       BOOST_REQUIRE_EQUAL( limit_order->orderid, 5 );
       BOOST_REQUIRE_EQUAL( limit_order->for_sale.value, 9090910 );
       BOOST_REQUIRE( limit_order->sell_price == price( ASSET( "1.000 2.28.0" ), ASSET( "1.100000 2.28.2" ) ) );
-      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, MBD_SYMBOL ) );
+      BOOST_REQUIRE( limit_order->get_market() == std::make_pair( BTCM_SYMBOL, XUSD_SYMBOL ) );
       BOOST_REQUIRE_EQUAL( alice.balance.amount.value, ASSET( "955.000 2.28.0" ).amount.value );
       BOOST_REQUIRE_EQUAL( alice.mbd_balance.amount.value, ASSET( "45.500000 2.28.2" ).amount.value );
       BOOST_REQUIRE_EQUAL( bob.balance.amount.value, ASSET( "35.909090 2.28.0" ).amount.value );

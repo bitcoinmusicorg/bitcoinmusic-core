@@ -64,7 +64,7 @@ const uint8_t streaming_platform_object::type_id;
 
 btcm::chain::asset_id_type BTCM_SYMBOL=(btcm::chain::asset_id_type(0));
 btcm::chain::asset_id_type VESTS_SYMBOL=(btcm::chain::asset_id_type(1));
-btcm::chain::asset_id_type MBD_SYMBOL=(btcm::chain::asset_id_type(2));
+btcm::chain::asset_id_type XUSD_SYMBOL=(btcm::chain::asset_id_type(2));
     
 
 inline u256 to256( const fc::uint128& t ) {
@@ -1007,7 +1007,7 @@ asset database::create_mbd(const account_object &to_account, asset btcm)
    try
    {
       if( btcm.amount == 0 )
-         return asset(0, MBD_SYMBOL);
+         return asset(0, XUSD_SYMBOL);
 
       const auto& median_price = get_feed_history().actual_median_history;
       if( !median_price.is_null() )
@@ -2088,7 +2088,7 @@ void database::process_conversions()
    if( fhistory.effective_median_history.is_null() )
       return;
 
-   asset net_mbd( 0, MBD_SYMBOL );
+   asset net_mbd( 0, XUSD_SYMBOL );
    asset net_btcm( 0, BTCM_SYMBOL );
 
    while( itr != request_by_date.end() && itr->conversion_date <= now )
@@ -2122,14 +2122,14 @@ asset database::to_mbd( const asset& btcm )const
    FC_ASSERT( btcm.asset_id == BTCM_SYMBOL );
    const auto& feed_history = get_feed_history();
    if( feed_history.actual_median_history.is_null() )
-      return asset( 0, MBD_SYMBOL );
+      return asset( 0, XUSD_SYMBOL );
 
    return btcm * feed_history.actual_median_history;
 }
 
 asset database::to_btcm(const asset &mbd)const
 {
-   FC_ASSERT( mbd.asset_id == MBD_SYMBOL );
+   FC_ASSERT( mbd.asset_id == XUSD_SYMBOL );
    const auto& feed_history = get_feed_history();
    if( feed_history.effective_median_history.is_null() )
       return asset( 0, BTCM_SYMBOL );
@@ -2415,7 +2415,7 @@ void database::init_genesis( const genesis_state_type& initial_allocation )
       {
          a.current_supply = 0;
          a.precision = BTCM_ASSET_PRECISION;
-         a.symbol_string = "MBD";
+         a.symbol_string = "XUSD";
          a.options.max_supply = BTCM_MAX_SHARE_SUPPLY;
          a.options.description = "BTCM backed dollars";
       });
@@ -2751,21 +2751,21 @@ try {
             std::sort( copy.begin(), copy.end() ); /// todo: use nth_item
             fho.effective_median_history = fho.actual_median_history = copy[copy.size()/2];
 
-            // This block limits the effective median price to force MBD to remain at or
-            // below 5% of the combined market cap of BTCM and MBD.
+            // This block limits the effective median price to force XUSD to remain at or
+            // below 5% of the combined market cap of BTCM and XUSD.
             //
-            // For example, if we have 500 BTCM and 100 MBD, the price is limited to
-            // 1900 MBD / 500 BTCM which works out to be $3.80.  At this price, 500 BTCM
-            // would be valued at 500 * $3.80 = $1900.  100 MBD is by definition always $100,
+            // For example, if we have 500 BTCM and 100 XUSD, the price is limited to
+            // 1900 XUSD / 500 BTCM which works out to be $3.80.  At this price, 500 BTCM
+            // would be valued at 500 * $3.80 = $1900.  100 XUSD is by definition always $100,
             // so the combined market cap is $1900 + $100 = $2000.
 
             const auto& gpo = get_dynamic_global_properties();
 
             if( gpo.current_mbd_supply.amount > 0 )
             {
-               if( fho.effective_median_history.base.asset_id != MBD_SYMBOL )
+               if( fho.effective_median_history.base.asset_id != XUSD_SYMBOL )
                   fho.effective_median_history = ~fho.effective_median_history;
-               price max_price( asset( 19 * gpo.current_mbd_supply.amount, MBD_SYMBOL ), gpo.current_supply );
+               price max_price( asset( 19 * gpo.current_mbd_supply.amount, XUSD_SYMBOL ), gpo.current_supply );
 
                if( max_price > fho.effective_median_history )
                   fho.effective_median_history = max_price;
@@ -3306,7 +3306,7 @@ string database::to_pretty_string( const asset& a )const
 
 void database::adjust_balance( const account_object& a, const asset& delta )
 {
-   if( delta.asset_id == BTCM_SYMBOL || delta.asset_id == MBD_SYMBOL )
+   if( delta.asset_id == BTCM_SYMBOL || delta.asset_id == XUSD_SYMBOL )
       modify( a, [&]( account_object& acnt )   
       {
          if(delta.asset_id==BTCM_SYMBOL)
@@ -3314,7 +3314,7 @@ void database::adjust_balance( const account_object& a, const asset& delta )
             acnt.balance.amount += delta.amount;
             return;
          }
-         if(delta.asset_id==MBD_SYMBOL)
+         if(delta.asset_id==XUSD_SYMBOL)
          {
             if( a.mbd_seconds_last_update != head_block_time() )
             {
@@ -3325,7 +3325,7 @@ void database::adjust_balance( const account_object& a, const asset& delta )
                   auto interest = acnt.mbd_seconds / BTCM_SECONDS_PER_YEAR;
                   interest *= get_dynamic_global_properties().mbd_interest_rate;
                   interest /= BTCM_100_PERCENT;
-                  asset interest_paid(interest.to_uint64(), MBD_SYMBOL);
+                  asset interest_paid(interest.to_uint64(), XUSD_SYMBOL);
                   acnt.mbd_balance += interest_paid;
                   acnt.mbd_seconds = 0;
                   acnt.mbd_last_interest_payment = head_block_time();
@@ -3382,7 +3382,7 @@ void database::adjust_supply( const asset& delta, bool adjust_vesting )
          props.virtual_supply += delta + new_vesting;
          props.total_vesting_fund_btcm += new_vesting;
          assert( props.current_supply.amount.value >= 0 );
-      }else if (delta.asset_id == MBD_SYMBOL){
+      }else if (delta.asset_id == XUSD_SYMBOL){
          props.current_mbd_supply += delta;
          props.virtual_supply = props.current_mbd_supply * get_feed_history().effective_median_history + props.current_supply;
          assert( props.current_mbd_supply.amount.value >= 0 );
@@ -3402,7 +3402,7 @@ asset database::get_balance( const account_object& a, asset_id_type symbol )cons
 {
    if(symbol == BTCM_SYMBOL)
       return a.balance;
-   if(symbol == MBD_SYMBOL)
+   if(symbol == XUSD_SYMBOL)
       return a.mbd_balance;
    auto& index = get_index_type<account_balance_index>().indices().get<by_account_asset>();
    auto itr = index.find(boost::make_tuple(a.get_id(), symbol));
@@ -3523,7 +3523,7 @@ void database::validate_invariants()const
    {
       const auto& account_idx = get_index_type<account_index>().indices().get<by_name>();
       asset total_supply = asset( 0, BTCM_SYMBOL );
-      asset total_mbd = asset( 0, MBD_SYMBOL );
+      asset total_mbd = asset( 0, XUSD_SYMBOL );
       asset total_vesting = asset( 0, VESTS_SYMBOL );
       share_type total_vsf_votes = share_type( 0 );
 
@@ -3556,7 +3556,7 @@ void database::validate_invariants()const
       {
          if( itr->amount.asset_id == BTCM_SYMBOL )
             total_supply += itr->amount;
-         else if( itr->amount.asset_id == MBD_SYMBOL )
+         else if( itr->amount.asset_id == XUSD_SYMBOL )
             total_mbd += itr->amount;
          else
             FC_ASSERT( !"Encountered illegal symbol in convert_request_object" );
@@ -3570,9 +3570,9 @@ void database::validate_invariants()const
          {
             total_supply += asset( itr->for_sale, BTCM_SYMBOL );
          }
-         else if ( itr->sell_price.base.asset_id == MBD_SYMBOL )
+         else if ( itr->sell_price.base.asset_id == XUSD_SYMBOL )
          {
-            total_mbd += asset( itr->for_sale, MBD_SYMBOL );
+            total_mbd += asset( itr->for_sale, XUSD_SYMBOL );
          }
       }
 

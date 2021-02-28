@@ -107,10 +107,10 @@ BOOST_AUTO_TEST_CASE( asset_test )
 
       BOOST_CHECK( std::abs( mbd.to_real() - 654.321 ) < 0.0005 );
       BOOST_CHECK_EQUAL( mbd.decimals(), BTCM_ASSET_PRECISION );
-      BOOST_CHECK_EQUAL( mbd.asset_id, MBD_SYMBOL );
+      BOOST_CHECK_EQUAL( mbd.asset_id, XUSD_SYMBOL );
       BOOST_CHECK_EQUAL( mbd.to_string(), "654.321000 2.28.2" );
-      BOOST_CHECK_EQUAL( asset(50000, MBD_SYMBOL).to_string(), "0.050000 2.28.2" );
-      BOOST_CHECK_EQUAL( asset(50000000, MBD_SYMBOL).to_string(), "50.000000 2.28.2" );
+      BOOST_CHECK_EQUAL( asset(50000, XUSD_SYMBOL).to_string(), "0.050000 2.28.2" );
+      BOOST_CHECK_EQUAL( asset(50000000, XUSD_SYMBOL).to_string(), "50.000000 2.28.2" );
 
       btcm = asset::from_string( "123.456789 2.28.1" );
       BOOST_CHECK_EQUAL( btcm.asset_id, VESTS_SYMBOL );
@@ -145,23 +145,23 @@ BOOST_AUTO_TEST_CASE( asset_test )
       BOOST_CHECK_EQUAL( btcm.amount.value, 123000000 );
 
       mbd = asset::from_string( "120.0000091 2.28.2" );
-      BOOST_CHECK_EQUAL( mbd.asset_id, MBD_SYMBOL );
+      BOOST_CHECK_EQUAL( mbd.asset_id, XUSD_SYMBOL );
       BOOST_CHECK_EQUAL( mbd.amount.value, 120000009 );
       BOOST_CHECK_EQUAL( mbd.to_string(), "120.000009 2.28.2" );
 
-      mbd = asset( 120000090, MBD_SYMBOL );
+      mbd = asset( 120000090, XUSD_SYMBOL );
       BOOST_CHECK_EQUAL( mbd.to_string(), "120.000090 2.28.2" );
 
-      mbd = asset( 120000900, MBD_SYMBOL );
+      mbd = asset( 120000900, XUSD_SYMBOL );
       BOOST_CHECK_EQUAL( mbd.to_string(), "120.000900 2.28.2" );
 
-      mbd = asset( 120009000, MBD_SYMBOL );
+      mbd = asset( 120009000, XUSD_SYMBOL );
       BOOST_CHECK_EQUAL( mbd.to_string(), "120.009000 2.28.2" );
 
-      mbd = asset( 120090000, MBD_SYMBOL );
+      mbd = asset( 120090000, XUSD_SYMBOL );
       BOOST_CHECK_EQUAL( mbd.to_string(), "120.090000 2.28.2" );
 
-      mbd = asset( 120900000, MBD_SYMBOL );
+      mbd = asset( 120900000, XUSD_SYMBOL );
       BOOST_CHECK_EQUAL( mbd.to_string(), "120.900000 2.28.2" );
    }
    FC_LOG_AND_RETHROW()

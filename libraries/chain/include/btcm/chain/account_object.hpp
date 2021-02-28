@@ -69,7 +69,7 @@ namespace btcm { namespace chain {
           *  @defgroup mbd_data mbd Balance Data
           */
          ///@{
-         asset              mbd_balance = asset( 0, MBD_SYMBOL ); /// total mbd balance
+         asset              mbd_balance = asset( 0, XUSD_SYMBOL ); /// total mbd balance
          fc::uint128_t      mbd_seconds; ///< total mbd * how long it has been hel
          fc::time_point_sec mbd_seconds_last_update; ///< the last time the mbd_seconds was updated
          fc::time_point_sec mbd_last_interest_payment; ///< used to pay interest at most once per month

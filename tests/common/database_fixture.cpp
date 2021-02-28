@@ -338,7 +338,7 @@ void database_fixture::convert(
          db.adjust_supply( -amount );
          db.adjust_supply( db.to_mbd( amount ) );
       }
-      else if ( amount.asset_id == MBD_SYMBOL )
+      else if ( amount.asset_id == XUSD_SYMBOL )
       {
          db.adjust_balance( account, -amount );
          db.adjust_balance( account, db.to_btcm(amount) );
@@ -450,7 +450,7 @@ void database_fixture::validate_database( void )
    {
       const auto& account_idx = db.get_index_type< account_index >().indices().get< by_id >();
       asset total_supply = asset( 0, BTCM_SYMBOL );
-      asset total_mbd = asset( 0, MBD_SYMBOL );
+      asset total_mbd = asset( 0, XUSD_SYMBOL );
       asset total_vesting = asset( 0, VESTS_SYMBOL );
       share_type total_vsf_votes = share_type( 0 );
 
@@ -472,7 +472,7 @@ void database_fixture::validate_database( void )
       {
          if( itr->amount.asset_id == BTCM_SYMBOL )
             total_supply += itr->amount;
-         else if( itr->amount.asset_id == MBD_SYMBOL )
+         else if( itr->amount.asset_id == XUSD_SYMBOL )
             total_mbd += itr->amount;
          else
             BOOST_CHECK( !"Encountered illegal symbol in convert_request_object" );
@@ -486,9 +486,9 @@ void database_fixture::validate_database( void )
          {
             total_supply += asset( itr->for_sale, BTCM_SYMBOL );
          }
-         else if ( itr->sell_price.base.asset_id == MBD_SYMBOL )
+         else if ( itr->sell_price.base.asset_id == XUSD_SYMBOL )
          {
-            total_mbd += asset( itr->for_sale, MBD_SYMBOL );
+            total_mbd += asset( itr->for_sale, XUSD_SYMBOL );
          }
       }
 
@@ -497,7 +497,7 @@ void database_fixture::validate_database( void )
       {
          if( balance.balance.asset_id == BTCM_SYMBOL )
             total_supply += balance.balance;
-         else if ( balance.balance.asset_id == MBD_SYMBOL )
+         else if ( balance.balance.asset_id == XUSD_SYMBOL )
             total_mbd += balance.balance;
          else
             BOOST_CHECK( !"Encountered illegal symbol in initial balance" );

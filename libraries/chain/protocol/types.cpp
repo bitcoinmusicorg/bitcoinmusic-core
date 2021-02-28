@@ -181,7 +181,7 @@ using namespace btcm::chain;
 
 asset_id_type BTCM_SYMBOL(0);
 asset_id_type VESTS_SYMBOL(1);
-asset_id_type MBD_SYMBOL(2);
+asset_id_type XUSD_SYMBOL(2);
 
 namespace fc
 {

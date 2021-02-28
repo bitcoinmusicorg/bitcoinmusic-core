@@ -158,8 +158,8 @@ namespace btcm { namespace chain {
    void feed_publish_operation::validate()const
    {
       FC_ASSERT( is_valid_account_name( publisher ) );
-      FC_ASSERT( ( is_asset_type( exchange_rate.base, BTCM_SYMBOL ) && is_asset_type( exchange_rate.quote, MBD_SYMBOL ) )
-         || ( is_asset_type( exchange_rate.base, MBD_SYMBOL ) && is_asset_type( exchange_rate.quote, BTCM_SYMBOL ) ) );
+      FC_ASSERT( ( is_asset_type( exchange_rate.base, BTCM_SYMBOL ) && is_asset_type( exchange_rate.quote, XUSD_SYMBOL ) )
+         || ( is_asset_type( exchange_rate.base, XUSD_SYMBOL ) && is_asset_type( exchange_rate.quote, BTCM_SYMBOL ) ) );
       exchange_rate.validate();
    }
 
@@ -188,13 +188,13 @@ namespace btcm { namespace chain {
    void convert_operation::validate()const
    {
       FC_ASSERT( is_valid_account_name( owner ) );
-      /// only allow conversion from MBD to BTCM, allowing the opposite can enable traders to abuse
+      /// only allow conversion from XUSD to BTCM, allowing the opposite can enable traders to abuse
       /// market fluxuations through converting large quantities without moving the price.
       if( is_asset_type( amount, BTCM_SYMBOL ) )
          FC_ASSERT( "federation" == owner || "federation.asset" == owner,
                     "Only federation and federation.asset accounts can convert XSD -> xUSD!" );
       else
-         FC_ASSERT( is_asset_type( amount, MBD_SYMBOL ) );
+         FC_ASSERT( is_asset_type( amount, XUSD_SYMBOL ) );
       FC_ASSERT( amount.amount > 0 );
    }
 

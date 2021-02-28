@@ -648,7 +648,7 @@ class wallet_api
 
 
       /**
-       * Transfer funds from one account to another. BTCM and MBD can be transferred.
+       * Transfer funds from one account to another. BTCM and XUSD can be transferred.
        *
        * @param from The account the funds are coming from
        * @param to The account the funds are going to
@@ -706,18 +706,18 @@ class wallet_api
       annotated_signed_transaction delegate_vesting_shares( string from, string to, asset amount, bool broadcast = false );
 
       /**
-       *  This method will convert MBD to BTCM at the current_median_history price one
+       *  This method will convert XUSD to BTCM at the current_median_history price one
        *  week from the time it is executed. This method depends upon there being a valid price feed.
        *
-       *  @param from The account requesting conversion of its MBD i.e. "1.000 MBD"
-       *  @param amount The amount of MBD to convert
+       *  @param from The account requesting conversion of its XUSD i.e. "1.000 XUSD"
+       *  @param amount The amount of XUSD to convert
        *  @param broadcast true if you wish to broadcast the transaction
        */
       annotated_signed_transaction convert_mbd( string from, asset amount, bool broadcast = false );
 
       /**
-       * A witness can public a price feed for the BTCM:MBD market. The median price feed is used
-       * to process conversion requests from MBD to BTCM.
+       * A witness can public a price feed for the BTCM:XUSD market. The median price feed is used
+       * to process conversion requests from XUSD to BTCM.
        *
        * @param witness The witness publishing the price feed
        * @param exchange_rate The desired exchange rate
@@ -757,7 +757,7 @@ class wallet_api
       vector< variant > network_get_connected_peers();
 
       /**
-       * Gets the current order book for BTCM:MBD
+       * Gets the current order book for BTCM:XUSD
        *
        * @param limit Maximum number of orders to return for bids and asks. Max is 1000.
        */
@@ -769,7 +769,7 @@ class wallet_api
        *
        *  @param owner The name of the account creating the order
        *  @param order_id is a unique identifier assigned by the creator of the order, it can be reused after the order has been filled
-       *  @param amount_to_sell The amount of either MBD or BTCM you wish to sell
+       *  @param amount_to_sell The amount of either XUSD or BTCM you wish to sell
        *  @param min_to_receive The amount of the other asset you will receive at a minimum
        *  @param fill_or_kill true if you want the order to be killed if it cannot immediately be filled
        *  @param expiration the time the order should expire if it has not been filled

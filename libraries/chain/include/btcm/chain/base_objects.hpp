@@ -92,8 +92,8 @@ namespace btcm { namespace chain {
          static const uint8_t space_id = implementation_ids;
          static const uint8_t type_id  = impl_feed_history_object_type;
 
-         price               actual_median_history; ///< the current actual median of the price history, used as the base for issuing MBD
-         price               effective_median_history; ///< the base converting MBD back to BTCM
+         price               actual_median_history; ///< the current actual median of the price history, used as the base for issuing XUSD
+         price               effective_median_history; ///< the base converting XUSD back to BTCM
          std::deque<price>   price_history; ///< tracks this last week of median_feed one per hour
    };
 
