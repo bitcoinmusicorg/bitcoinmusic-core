@@ -58,8 +58,12 @@ struct liquidity_balance
 
 struct extended_balance : account_balance_object
 {
-   string         symbol;
-   uint8_t        precision;
+   string     issuer;
+   string     symbol;
+   string     description;
+   uint8_t    precision;
+   share_type current_supply;
+   share_type max_supply;
 
    extended_balance() = default;
    extended_balance(const account_balance_object& balance);
@@ -558,7 +562,8 @@ FC_REFLECT( btcm::app::order, (order_price)(real_price)(base)(quote)(created) );
 FC_REFLECT( btcm::app::order_book, (base)(quote)(asks)(bids) );
 FC_REFLECT( btcm::app::scheduled_hardfork, (hf_version)(live_time) );
 FC_REFLECT( btcm::app::liquidity_balance, (account)(weight) );
-FC_REFLECT_DERIVED( btcm::app::extended_balance, (btcm::chain::account_balance_object), (symbol)(precision) );
+FC_REFLECT_DERIVED( btcm::app::extended_balance, (btcm::chain::account_balance_object),
+                    (issuer)(symbol)(description)(precision)(current_supply)(max_supply) );
 
 FC_REFLECT( btcm::app::discussion_query, (tag)(filter_tags)(start_author)(start_permlink)(parent_author)(parent_permlink)(limit) );
 

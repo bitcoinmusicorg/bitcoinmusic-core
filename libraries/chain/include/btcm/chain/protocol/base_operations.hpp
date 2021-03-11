@@ -746,9 +746,9 @@ FC_REFLECT( btcm::chain::escrow_dispute_operation, (from)(to)(escrow_id)(who)(ex
 FC_REFLECT( btcm::chain::escrow_release_operation, (from)(to)(escrow_id)(who)(amount)(extensions) );
 FC_REFLECT( btcm::chain::challenge_authority_operation, (challenger)(challenged)(require_owner)(extensions) );
 FC_REFLECT( btcm::chain::prove_authority_operation, (challenged)(require_owner)(extensions) );
-FC_REFLECT( btcm::chain::request_account_recovery_operation, (recovery_account)(account_to_recover)(new_owner_authority)(extensions)(extensions) );
-FC_REFLECT( btcm::chain::recover_account_operation, (account_to_recover)(new_owner_authority)(recent_owner_authority)(extensions)(extensions) );
-FC_REFLECT( btcm::chain::change_recovery_account_operation, (account_to_recover)(new_recovery_account)(extensions)(extensions) );
+FC_REFLECT( btcm::chain::request_account_recovery_operation, (recovery_account)(account_to_recover)(new_owner_authority)(extensions) );
+FC_REFLECT( btcm::chain::recover_account_operation, (account_to_recover)(new_owner_authority)(recent_owner_authority)(extensions) );
+FC_REFLECT( btcm::chain::change_recovery_account_operation, (account_to_recover)(new_recovery_account)(extensions) );
 FC_REFLECT( btcm::chain::delegate_vesting_shares_operation, (delegator)(delegatee)(vesting_shares)
                                                             (extensions)
           );

@@ -457,9 +457,14 @@ vector <extended_balance> database_api_impl::get_uia_balances( string account ){
    while ( bitr != balance_by_account.end() && bitr->owner == itr->id )
    {
       result.emplace_back(*bitr);
+      extended_balance& balance = result.back();
       const auto& asset = _db.get<btcm::chain::asset_object>( bitr->asset_type );
-      result.back().symbol = asset.symbol_string;
-      result.back().precision = asset.precision;
+      balance.issuer = asset.issuer;
+      balance.symbol = asset.symbol_string;
+      balance.description = asset.options.description;
+      balance.precision = asset.precision;
+      balance.current_supply = asset.current_supply;
+      balance.max_supply = asset.options.max_supply;
       ++bitr;
    }
    return result;
