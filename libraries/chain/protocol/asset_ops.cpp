@@ -82,6 +82,7 @@ void  asset_create_operation::validate()const
 
 void asset_update_operation::validate()const
 {
+   FC_ASSERT(!"disabled");
    if( new_issuer )
       FC_ASSERT(issuer != *new_issuer);
    new_options.validate();

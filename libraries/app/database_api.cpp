@@ -91,7 +91,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<asset_object> lookup_uias(uint64_t start_id )const;
       optional<asset_object>         get_uia_details(string UIA)const;
       asset_object get_asset(asset_id_type asset_id)const;
-      map<account_id_type, share_type> get_asset_holders( asset_id_type asset_id )const;
+      map<string, share_type> get_asset_holders( asset_id_type asset_id )const;
       vector <extended_balance> get_uia_balances( string account );
 
       // Authority / validation
@@ -459,7 +459,7 @@ vector <extended_balance> database_api_impl::get_uia_balances( string account ){
       result.emplace_back(*bitr);
       extended_balance& balance = result.back();
       const auto& asset = _db.get<btcm::chain::asset_object>( bitr->asset_type );
-      balance.issuer = asset.issuer;
+      balance.issuer = asset.issuer(_db).name;
       balance.symbol = asset.symbol_string;
       balance.description = asset.options.description;
       balance.precision = asset.precision;
@@ -1079,7 +1079,7 @@ asset_object database_api::get_asset(asset_id_type asset_id)const
    return my->get_asset(asset_id);
 }
 
-map<account_id_type, share_type> database_api::get_asset_holders(asset_id_type asset_id)const
+map<string, share_type> database_api::get_asset_holders(asset_id_type asset_id)const
 {
    return my->get_asset_holders(asset_id);
 }
@@ -1112,9 +1112,9 @@ asset_object database_api_impl::get_asset(asset_id_type asset_id)const
    return _db.get(asset_id);
 }
 
-map<account_id_type, share_type> database_api_impl::get_asset_holders(asset_id_type asset_id)const
+map<string, share_type> database_api_impl::get_asset_holders(asset_id_type asset_id)const
 {
-   map<account_id_type, share_type> result;
+   map<string, share_type> result;
    if( asset_id == BTCM_SYMBOL || asset_id == XUSD_SYMBOL || asset_id == VESTS_SYMBOL )
    {
       for( const auto& acct : _db.get_index_type<account_index>().indices() )
@@ -1123,7 +1123,7 @@ map<account_id_type, share_type> database_api_impl::get_asset_holders(asset_id_t
                                 : asset_id == XUSD_SYMBOL ? acct.mbd_balance.amount
                                    : acct.vesting_shares.amount;
          if( balance > 0 )
-            result[acct.id] = balance;
+            result[acct.name] = balance;
       }
    }
    else // not a base asset
@@ -1133,7 +1133,7 @@ map<account_id_type, share_type> database_api_impl::get_asset_holders(asset_id_t
       while( itr != idx.end() && itr->asset_type == asset_id )
       {
          if( itr->balance > 0 )
-            result[itr->owner] = itr->balance;
+            result[itr->owner(_db).name] = itr->balance;
          ++itr;
       }
    }
