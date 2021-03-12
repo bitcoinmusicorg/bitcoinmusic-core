@@ -206,10 +206,10 @@ class database_api
       /****************
        * Get all holders of the given asset
        * @param asset_id ID of the asset to look for
-       * @return a mapping of account ids and asset balances
+       * @return a mapping of account names and asset balances
        * @ingroup db_api
        */
-      map<account_id_type, share_type> get_asset_holders( asset_id_type asset_id )const;
+      map<string, share_type> get_asset_holders( asset_id_type asset_id )const;
 
       /****************
        * Get User Issued Asset balances for a particular account
