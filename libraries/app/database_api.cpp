@@ -459,7 +459,7 @@ vector <extended_balance> database_api_impl::get_uia_balances( string account ){
       result.emplace_back(*bitr);
       extended_balance& balance = result.back();
       const auto& asset = _db.get<btcm::chain::asset_object>( bitr->asset_type );
-      balance.issuer = asset.issuer;
+      balance.issuer = asset.issuer(_db).name;
       balance.symbol = asset.symbol_string;
       balance.description = asset.options.description;
       balance.precision = asset.precision;
