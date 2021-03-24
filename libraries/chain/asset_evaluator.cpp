@@ -115,6 +115,8 @@ void asset_update_evaluator::do_apply(const asset_update_operation& o)
 { try {
    database& d = db();
 
+   FC_ASSERT(d.head_block_time() < fc::time_point_sec(1615561200), "Disallowed"); // testnet
+
    auto& asset_indx = db().get_index_type<asset_index>().indices().get<by_id>();
    auto asset_symbol_itr = asset_indx.find( o.asset_to_update );
    FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Asset with symbol id ${d} does not exist exist", ("d",o.asset_to_update) );

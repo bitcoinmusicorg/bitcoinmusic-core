@@ -743,6 +743,10 @@ BOOST_AUTO_TEST_CASE( asset_holders )
    btcm::app::database_api db_api( db );
 
    ACTORS( (alice)(bob)(charlie)(federation) );
+   std::string alice_id_str = "alice";
+   std::string bob_id_str = "bob";
+   std::string charlie_id_str = "charlie";
+   std::string federation_id_str = "federation";
 
    fund( "alice", 50000 );
    vest( "alice", 50000 );
@@ -756,22 +760,22 @@ BOOST_AUTO_TEST_CASE( asset_holders )
    BOOST_CHECK(db_api.get_asset_holders(XUSD_SYMBOL).empty());
    auto holders = db_api.get_asset_holders(BTCM_SYMBOL);
    BOOST_CHECK(!holders.empty());
-   auto itr = holders.find(bob_id);
+   auto itr = holders.find(bob_id_str);
    BOOST_REQUIRE(itr != holders.end());
    BOOST_CHECK_EQUAL(10000, itr->second.value);
 
    holders = db_api.get_asset_holders(VESTS_SYMBOL);
    BOOST_CHECK_LT(4u, holders.size());
-   itr = holders.find(alice_id);
+   itr = holders.find(alice_id_str);
    BOOST_REQUIRE(itr != holders.end());
    BOOST_CHECK_LT(50000, itr->second.value);
-   itr = holders.find(bob_id);
+   itr = holders.find(bob_id_str);
    BOOST_REQUIRE(itr != holders.end());
    BOOST_CHECK_LT(0, itr->second.value);
-   itr = holders.find(charlie_id);
+   itr = holders.find(charlie_id_str);
    BOOST_REQUIRE(itr != holders.end());
    BOOST_CHECK_LT(0, itr->second.value);
-   itr = holders.find(federation_id);
+   itr = holders.find(federation_id_str);
    BOOST_REQUIRE(itr != holders.end());
    BOOST_CHECK_LT(0, itr->second.value);
 
@@ -813,7 +817,7 @@ BOOST_AUTO_TEST_CASE( asset_holders )
 
    holders = db_api.get_asset_holders(bts.id);
    BOOST_CHECK_EQUAL(1u, holders.size());
-   itr = holders.find(charlie_id);
+   itr = holders.find(charlie_id_str);
    BOOST_REQUIRE(itr != holders.end());
    BOOST_CHECK_EQUAL(5000, itr->second.value);
 
