@@ -44,6 +44,10 @@ namespace impl {
          template<typename T>
          void operator()( const T& v )const { /* do nothing by default */ }
 
+         void operator()( const btcm::chain::asset_update_operation& v )const {
+            FC_ASSERT(false, "Disallowed");
+         }
+
          void operator()( const btcm::chain::proposal_create_operation& v )const {
             bool proposal_update_seen = false;
             for (const op_wrapper &op : v.proposed_ops)
