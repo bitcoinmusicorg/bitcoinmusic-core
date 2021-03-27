@@ -43,8 +43,8 @@
 #define BTCM_MAX_MINERS (BTCM_MAX_VOTED_WITNESSES+BTCM_MAX_RUNNER_WITNESSES) /// 21 is more than enough
 #define BTCM_MAX_VOTED_STREAMING_PLATFORMS      10
 #define BTCM_MIN_STREAMING_PLATFORM_CREATION_FEE    (21000000 * 1000000LL)
-#define BTCM_ASSET_CREATION_FEE                     (100 * 1000000)
-#define BTCM_SUBASSET_CREATION_FEE                  (50 * 1000000)
+#define BTCM_ASSET_CREATION_FEE                     (10 * 1000000)
+#define BTCM_SUBASSET_CREATION_FEE                  (10 * 1000000)
 
 #define BTCM_HARDFORK_REQUIRED_WITNESSES     17 // 17 of the 20 dpos witnesses (19 elected and 1 virtual time) required for hardfork. This guarantees 75% participation on all subsequent rounds.
 #define BTCM_MAX_TIME_UNTIL_EXPIRATION       (60*60) // seconds,  aka: 1 hour
