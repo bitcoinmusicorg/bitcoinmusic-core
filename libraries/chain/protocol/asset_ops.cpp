@@ -45,9 +45,6 @@ bool is_valid_symbol( const string& symbol )
     if( !isalpha( symbol.front(), c_locale ) )
         return false;
 
-    if( !isalpha( symbol.back(), c_locale ) )
-        return false;
-
     bool dot_already_present = false;
     for( const auto c : symbol )
     {
