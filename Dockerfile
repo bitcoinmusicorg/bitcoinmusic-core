@@ -63,8 +63,12 @@ RUN \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
         .. && \
-    make btcmd cli_wallet get_dev_key && \
-    install -s programs/btcmd/btcmd programs/cli_wallet/cli_wallet programs/util/get_dev_key /usr/local/bin && \
+    make btcmd cli_wallet get_dev_key map_btcm_network && \
+    install -s	programs/btcmd/btcmd \
+		programs/cli_wallet/cli_wallet \
+		programs/util/get_dev_key \
+		programs/util/map_btcm_network \
+		/usr/local/bin && \
     cd .. && \
     install -d /etc/BTCM && \
     install -m 0644 Docker/config.ini /etc/BTCM/ && \
@@ -99,3 +103,4 @@ COPY --from=build /etc/BTCM/version /etc/BTCM/version
 COPY --from=build /usr/local/bin/cli_wallet /usr/local/bin/cli_wallet
 COPY --from=build /usr/local/bin/get_dev_key /usr/local/bin/get_dev_key
 COPY --from=build /usr/local/bin/btcmd /usr/local/bin/btcmd
+COPY --from=build /usr/local/bin/map_btcm_network /usr/local/bin/map_btcm_network
