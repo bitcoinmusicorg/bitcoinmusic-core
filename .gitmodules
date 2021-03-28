@@ -1,0 +1,9 @@
+[submodule "libraries/fc/vendor/secp256k1-zkp"]
+	path = libraries/fc/vendor/secp256k1-zkp
+	url = https://github.com/bitshares/secp256k1-zkp.git
+[submodule "libraries/fc/vendor/websocketpp"]
+	path = libraries/fc/vendor/websocketpp
+	url = https://github.com/bitshares/websocketpp.git
+[submodule "libraries/fc/vendor/editline"]
+	path = libraries/fc/vendor/editline
+	url = https://github.com/troglobit/editline.git
