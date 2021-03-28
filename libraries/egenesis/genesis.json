@@ -1,8 +1,18 @@
 {
     "initial_accounts": [
-        {"name":"peertracks","owner_key":"BTCM...","active_key":"BTCM..."}
+        {"name":"privatesale","owner_key":"BTCM8Fd2S4b5gzGdEiqAxuLtsnEzbLwPtfk9L6NKpZrGrKW6s7mKNT","active_key":"BTCM8Fd2S4b5gzGdEiqAxuLtsnEzbLwPtfk9L6NKpZrGrKW6s7mKNT"},
+        {"name":"reward","owner_key":"BTCM5sf4P5QG2Z3VG4Vd9o8kfqvP8iPZizBjZ95Eyz29dQ6uXY9GUA","active_key":"BTCM5sf4P5QG2Z3VG4Vd9o8kfqvP8iPZizBjZ95Eyz29dQ6uXY9GUA"},
+        {"name":"team","owner_key":"BTCM561ATiXSbzjQQc8eF5CLysans5Hycv6mGmERMUnsDg4ckWDiAZ","active_key":"BTCM561ATiXSbzjQQc8eF5CLysans5Hycv6mGmERMUnsDg4ckWDiAZ"},
+        {"name":"foundation","owner_key":"BTCM6tqP3iyvTm7tsrrPP7TaPYfYgaFmLbUQMbKhHZ3MTxokvABSW7","active_key":"BTCM6tqP3iyvTm7tsrrPP7TaPYfYgaFmLbUQMbKhHZ3MTxokvABSW7"},
+        {"name":"partners","owner_key":"BTCM8QwjuSY4JxF3bqfpDt2bTgAkdWuUMQh3tT3p2ThGCf9Ed8YnVh","active_key":"BTCM8QwjuSY4JxF3bqfpDt2bTgAkdWuUMQh3tT3p2ThGCf9Ed8YnVh"},
+        {"name":"liquidity","owner_key":"BTCM5yGwpecFojrtoHW1t62ne9bxyiN7yCXhTjz97E6FvB5Q9gfxBd","active_key":"BTCM5yGwpecFojrtoHW1t62ne9bxyiN7yCXhTjz97E6FvB5Q9gfxBd"}
     ],
     "initial_balances": [
-        {"owner":"BTCM...","asset_symbol":"BTCM","amount":"21000000000000"}
+        {"owner":"privatesale","asset_symbol":"BTCM","amount":"50000000000000"},
+        {"owner":"reward","asset_symbol":"BTCM","amount":"10000000000000"},
+        {"owner":"team","asset_symbol":"BTCM","amount":"5000000000000"},
+        {"owner":"foundation","asset_symbol":"BTCM","amount":"25000000000000"},
+        {"owner":"partners","asset_symbol":"BTCM","amount":"5000000000000"},
+        {"owner":"liquidity","asset_symbol":"BTCM","amount":"5000000000000"}
     ]
 }

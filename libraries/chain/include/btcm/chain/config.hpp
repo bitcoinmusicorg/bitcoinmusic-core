@@ -7,7 +7,7 @@
 #define BTCM_BLOCKCHAIN_VERSION              ( version(0, 0, 1) )
 #define BTCM_BLOCKCHAIN_HARDFORK_VERSION     ( hardfork_version( BTCM_BLOCKCHAIN_VERSION ) )
 
-#define BTCM_INIT_PUBLIC_KEY_STR             "BTCM75fnamVHSMV67JaRPSKbCr8vDwGoCEDeDky8e78JJbNEYcbqv1"
+#define BTCM_INIT_PUBLIC_KEY_STR             "BTCM7kcBTQqFo8Lb7nttdjAY4hveRWM2yNk4FDjvECubdaPPjUCiLZ"
 #define BTCM_CHAIN_ID                        (fc::sha256::hash("BitcoinMusic main chain"))
 #define BASE_SYMBOL                          "BTCM"
 #define BTCM_ADDRESS_PREFIX                  "BTCM"
@@ -17,7 +17,7 @@
 
 #define NULL_SYMBOL  (uint64_t(3) )
 
-#define BTCM_GENESIS_TIME                    (fc::time_point_sec(1458835200))
+#define BTCM_GENESIS_TIME                    (fc::time_point_sec(1585422000)) // 2020-03-28T20:00Z
 #define BTCM_VOTE_CHANGE_LOCKOUT_PERIOD      (60*60*2) /// 2 hours
 
 #define BTCM_MIN_ACCOUNT_CREATION_FEE           1
@@ -42,7 +42,7 @@
 #define BTCM_MAX_RUNNER_WITNESSES            1
 #define BTCM_MAX_MINERS (BTCM_MAX_VOTED_WITNESSES+BTCM_MAX_RUNNER_WITNESSES) /// 21 is more than enough
 #define BTCM_MAX_VOTED_STREAMING_PLATFORMS      10
-#define BTCM_MIN_STREAMING_PLATFORM_CREATION_FEE    (21000000 * 1000000LL)
+#define BTCM_MIN_STREAMING_PLATFORM_CREATION_FEE    (100000000 * 1000000LL)
 #define BTCM_ASSET_CREATION_FEE                     (10 * 1000000)
 #define BTCM_SUBASSET_CREATION_FEE                  (10 * 1000000)
 
