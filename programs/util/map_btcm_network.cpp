@@ -215,7 +215,7 @@ int main(int argc, char** argv)
        {
           std::shared_ptr<peer_probe> probe(new peer_probe());
           probe->start(remote, my_node_id, chain_db.get_chain_id());
-          probes.push_back( probe );
+          probes.emplace_back( std::move( probe ) );
        }
        catch (const fc::exception&)
        {
@@ -225,10 +225,7 @@ int main(int argc, char** argv)
 
     if (!probes.empty())
     {
-       try {
-          probes[0]->wait( fc::microseconds(10000) );
-       } catch ( fc::timeout_exception& e ) { /* ignore */ }
-
+       fc::usleep( fc::milliseconds( 50 ) );
        std::vector<std::shared_ptr<peer_probe>> running;
        for ( auto& probe : probes ) {
           if (probe->_probe_complete_promise->error())
@@ -242,15 +239,18 @@ int main(int argc, char** argv)
              continue;
           }
 
-          graphene::net::address_info this_node_info;
-          this_node_info.direction = graphene::net::peer_connection_direction::outbound;
-          this_node_info.firewalled = graphene::net::firewalled_state::not_firewalled;
-          this_node_info.remote_endpoint = probe->_remote;
-          this_node_info.node_id = probe->_node_id;
+	  if( probe->_node_id.valid() )
+	  {
+             graphene::net::address_info this_node_info;
+             this_node_info.direction = graphene::net::peer_connection_direction::outbound;
+             this_node_info.firewalled = graphene::net::firewalled_state::not_firewalled;
+             this_node_info.remote_endpoint = probe->_remote;
+             this_node_info.node_id = probe->_node_id;
 
-          connections_by_node_id[this_node_info.node_id] = probe->_peers;
-          if (address_info_by_node_id.find(probe->_node_id) == address_info_by_node_id.end())
-             address_info_by_node_id[probe->_node_id] = this_node_info;
+             connections_by_node_id[this_node_info.node_id] = probe->_peers;
+             if (address_info_by_node_id.find(probe->_node_id) == address_info_by_node_id.end())
+                address_info_by_node_id[probe->_node_id] = this_node_info;
+	  }
 
           for (const graphene::net::address_info& info : probe->_peers)
           {
