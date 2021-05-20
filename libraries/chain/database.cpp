@@ -3415,6 +3415,9 @@ void database::init_hardforks()
 {
    _hardfork_times[ 0 ] = fc::time_point_sec( BTCM_GENESIS_TIME );
    _hardfork_versions[ 0 ] = hardfork_version( 0, 0 );
+   FC_ASSERT( BTCM_HARDFORK_0_1 == 1, "Invalid hardfork configuration" );
+   _hardfork_times[ BTCM_HARDFORK_0_1 ] = fc::time_point_sec( BTCM_HARDFORK_0_1_TIME );
+   _hardfork_versions[ BTCM_HARDFORK_0_1 ] = BTCM_HARDFORK_0_1_VERSION;
 
    const auto& hardforks = hardfork_property_id_type()( *this );
    FC_ASSERT( hardforks.last_hardfork <= BTCM_NUM_HARDFORKS, "Chain knows of more hardforks than configuration",

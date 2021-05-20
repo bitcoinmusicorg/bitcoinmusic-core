@@ -1,0 +1,6 @@
+#ifndef BTCM_HARDFORK_0_1
+#define BTCM_HARDFORK_0_1 1
+// Mainnet hardfork: TBD
+#define BTCM_HARDFORK_0_1_TIME 1700000000
+#define BTCM_HARDFORK_0_1_VERSION hardfork_version( 0, 1 )
+#endif

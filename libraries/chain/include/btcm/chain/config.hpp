@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#define BTCM_BLOCKCHAIN_VERSION              ( version(0, 0, 1) )
+#define BTCM_BLOCKCHAIN_VERSION              ( version(0, 1, 0) )
 #define BTCM_BLOCKCHAIN_HARDFORK_VERSION     ( hardfork_version( BTCM_BLOCKCHAIN_VERSION ) )
 
 #define BTCM_INIT_PUBLIC_KEY_STR             "BTCM7kcBTQqFo8Lb7nttdjAY4hveRWM2yNk4FDjvECubdaPPjUCiLZ"
