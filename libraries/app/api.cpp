@@ -132,7 +132,7 @@ namespace btcm { namespace app {
              if( itr != _callbacks.end() )
              {
                 auto callback = _callbacks.find(id)->second;
-                fc::async( [capture_this,this,id,block_num,trx_num,callback](){ callback( fc::variant( transaction_confirmation{ id, block_num, int32_t(trx_num), false}, GRAPHENE_MAX_NESTED_OBJECTS ) ); } );
+                fc::async( [capture_this,id,block_num,trx_num,callback](){ callback( fc::variant( transaction_confirmation{ id, block_num, int32_t(trx_num), false}, GRAPHENE_MAX_NESTED_OBJECTS ) ); } );
                 itr->second = []( const variant& ){};
              }
           }
