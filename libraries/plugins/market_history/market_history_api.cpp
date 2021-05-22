@@ -2,6 +2,8 @@
 
 #include <btcm/chain/base_objects.hpp>
 
+#include "normalized_ids.hxx"
+
 namespace btcm { namespace market_history {
 
 namespace detail
@@ -11,102 +13,124 @@ class market_history_api_impl
 {
    public:
       market_history_api_impl( btcm::app::application& _app )
-         :app( _app ) {}
+         :app( _app ), db( *_app.chain_database() ) {}
 
-      market_ticker get_ticker() const;
-      market_volume get_volume() const;
-      order_book get_order_book( uint32_t limit ) const;
-      vector< market_trade > get_trade_history( time_point_sec start, time_point_sec end, uint32_t limit ) const;
-      vector< market_trade > get_recent_trades( uint32_t limit ) const;
-      vector< bucket_object > get_market_history( uint32_t bucket_seconds, time_point_sec start, time_point_sec end ) const;
+      market_ticker get_ticker( const std::string& asset_a, const std::string& asset_b ) const;
+      market_volume get_volume( const std::string& asset_a, const std::string& asset_b ) const;
+      order_book get_order_book( const std::string& asset_a, const std::string& asset_b, uint32_t limit ) const;
+      vector< market_trade > get_trade_history( const std::string& asset_a, const std::string& asset_b,
+                                                time_point_sec start, time_point_sec end, uint32_t limit ) const;
+      vector< market_trade > get_recent_trades( const std::string& asset_a, const std::string& asset_b, uint32_t limit ) const;
+      vector< bucket_object > get_market_history( const std::string& asset_a, const std::string& asset_b,
+                                                  uint32_t bucket_seconds, time_point_sec start, time_point_sec end ) const;
       flat_set< uint32_t > get_market_history_buckets() const;
 
+      asset_id_type get_asset( const std::string& symbol_or_id )const;
+
       btcm::app::application& app;
+      chain::database& db;
 };
 
-market_ticker market_history_api_impl::get_ticker() const
+asset_id_type market_history_api_impl::get_asset( const std::string& symbol_or_id ) const
 {
-   market_ticker result;
+   try {
+      asset_id_type result;
+      fc::from_variant( symbol_or_id, result, 1 );
+      return result;
+   } catch( ... ) {
+      const auto& ass = db.get_asset( symbol_or_id );
+      return ass.id;
+   }
+}
 
-   auto db = app.chain_database();
-   const auto& bucket_idx = db->get_index_type< bucket_index >().indices().get< by_bucket >();
-   auto itr = bucket_idx.lower_bound( boost::make_tuple( 86400, db->head_block_time() - 86400 ) );
+market_ticker market_history_api_impl::get_ticker( const std::string& asset_a, const std::string& asset_b ) const
+{
+   const auto& buckets = app.get_plugin< market_history_plugin >( MARKET_HISTORY_PLUGIN_NAME )->get_tracked_buckets();
+   FC_ASSERT( buckets.find(86400) != buckets.end(), "get_ticker requires bucket size 86400" );
 
-   if( itr != bucket_idx.end() )
+   asset_id_type asset_id_a = get_asset( asset_a );
+   asset_id_type asset_id_b = get_asset( asset_b );
+   normalize_asset_ids( asset_id_a, asset_id_b );
+
+   const auto& bucket_idx = db.get_index_type< bucket_index >().indices().get< by_bucket >();
+   auto itr = bucket_idx.lower_bound( boost::make_tuple( asset_id_a, asset_id_b, 86400, db.head_block_time() - 86400 ) );
+
+   market_ticker result( get_volume( asset_a, asset_b ) );
+   if( itr != bucket_idx.end() && itr->asset_a == asset_id_a && itr->asset_b == asset_id_b && itr->seconds == 86400 )
    {
-      auto open = ( asset( itr->open_mbd, XUSD_SYMBOL ) / asset( itr->open_btcm, BTCM_SYMBOL ) ).to_real();
-      result.latest = ( asset( itr->close_mbd, XUSD_SYMBOL ) / asset( itr->close_btcm, BTCM_SYMBOL ) ).to_real();
-      result.percent_change = ( ( result.latest - open ) / open ) * 100;
+      auto open = itr->open().to_real();
+      result.latest = itr->close();
+      result.percent_change = ( ( result.latest.to_real() - open ) / open ) * 100;
    }
    else
-   {
-      result.latest = 0;
       result.percent_change = 0;
-   }
 
-   auto orders = get_order_book( 1 );
+   auto orders = get_order_book( asset_a, asset_b, 1 );
    if( orders.bids.size() )
-      result.highest_bid = orders.bids[0].price;
+      result.highest_bid = orders.bids[0].price();
    if( orders.asks.size() )
-      result.lowest_ask = orders.asks[0].price;
-
-   auto volume = get_volume();
-   result.btcm_volume = volume.btcm_volume;
-   result.mbd_volume = volume.mbd_volume;
+      result.lowest_ask = ~orders.asks[0].price();
 
    return result;
 }
 
-market_volume market_history_api_impl::get_volume() const
+market_volume market_history_api_impl::get_volume( const std::string& asset_a, const std::string& asset_b ) const
 {
-   auto db = app.chain_database();
-   const auto& bucket_idx = db->get_index_type< bucket_index >().indices().get< by_bucket >();
-   auto itr = bucket_idx.lower_bound( boost::make_tuple( 0, db->head_block_time() - 86400 ) );
-   uint32_t bucket_size;
+   const auto& buckets = app.get_plugin< market_history_plugin >( MARKET_HISTORY_PLUGIN_NAME )->get_tracked_buckets();
+   FC_ASSERT( !buckets.empty() && *buckets.begin() < 86400, "get_volume requires a bucket size less than 86400" );
+   const uint32_t bucket_size = *buckets.begin();
 
-   market_volume result;
+   asset_id_type asset_id_a = get_asset( asset_a );
+   asset_id_type asset_id_b = get_asset( asset_b );
+   normalize_asset_ids( asset_id_a, asset_id_b );
 
-   if( itr != bucket_idx.end() )
-      bucket_size = itr->seconds;
+   const auto& bucket_idx = db.get_index_type< bucket_index >().indices().get< by_bucket >();
+   auto itr = bucket_idx.lower_bound( boost::make_tuple( asset_id_a, asset_id_b,
+                                                         bucket_size, db.head_block_time() - 86400 ) );
 
-   while( itr != bucket_idx.end() && itr->seconds == bucket_size )
+   market_volume result = { asset( 0, asset_id_a ), asset( 0, asset_id_b ) };
+   while( itr != bucket_idx.end() && itr->asset_a == asset_id_a && itr->asset_b == asset_id_b
+          && itr->seconds == bucket_size )
    {
-      result.btcm_volume.amount += itr->btcm_volume;
-      result.mbd_volume.amount += itr->mbd_volume;
-
+      result.volume_a.amount += itr->volume_a;
+      result.volume_b.amount += itr->volume_b;
       ++itr;
    }
 
    return result;
 }
 
-order_book market_history_api_impl::get_order_book( uint32_t limit ) const
+order_book market_history_api_impl::get_order_book( const std::string& asset_a, const std::string& asset_b, uint32_t limit ) const
 {
    FC_ASSERT( limit <= 500 );
 
-   const auto& order_idx = app.chain_database()->get_index_type< btcm::chain::limit_order_index >().indices().get< btcm::chain::by_price >();
-   auto itr = order_idx.lower_bound( price::max( XUSD_SYMBOL, BTCM_SYMBOL ) );
+   asset_id_type asset_id_a = get_asset( asset_a );
+   asset_id_type asset_id_b = get_asset( asset_b );
+   normalize_asset_ids( asset_id_a, asset_id_b );
+
+   const auto& order_idx = db.get_index_type< btcm::chain::limit_order_index >().indices().get< btcm::chain::by_price >();
+   auto itr = order_idx.lower_bound( price::max( asset_id_a, asset_id_b ) );
 
    order_book result;
-
-   while( itr != order_idx.end() && itr->sell_price.base.asset_id == XUSD_SYMBOL && result.bids.size() < limit )
+   result.bids.reserve( limit );
+   result.asks.reserve( limit );
+   while( itr != order_idx.end() && itr->sell_price.base.asset_id == asset_id_a
+          && itr->sell_price.quote.asset_id == asset_id_b && result.bids.size() < limit )
    {
       order cur;
-      cur.price = itr->sell_price.base.to_real() / itr->sell_price.quote.to_real();
-      cur.btcm = ( asset( itr->for_sale, XUSD_SYMBOL ) * itr->sell_price ).amount;
-      cur.mbd = itr->for_sale;
+      cur.bid = asset( itr->for_sale, asset_id_a );
+      cur.ask = cur.bid * itr->sell_price;
       result.bids.push_back( cur );
       ++itr;
    }
 
-   itr = order_idx.lower_bound( price::max( BTCM_SYMBOL, XUSD_SYMBOL ) );
-
-   while( itr != order_idx.end() && itr->sell_price.base.asset_id == BTCM_SYMBOL && result.asks.size() < limit )
+   itr = order_idx.lower_bound( price::max( asset_id_b, asset_id_a ) );
+   while( itr != order_idx.end() && itr->sell_price.base.asset_id == asset_id_b
+          && itr->sell_price.quote.asset_id == asset_id_a && result.asks.size() < limit )
    {
       order cur;
-      cur.price = itr->sell_price.quote.to_real() / itr->sell_price.base.to_real();
-      cur.btcm = itr->for_sale;
-      cur.mbd = ( asset( itr->for_sale, BTCM_SYMBOL ) * itr->sell_price ).amount;
+      cur.bid = asset( itr->for_sale, asset_id_b );
+      cur.ask = cur.bid * itr->sell_price;
       result.asks.push_back( cur );
       ++itr;
    }
@@ -114,15 +138,21 @@ order_book market_history_api_impl::get_order_book( uint32_t limit ) const
    return result;
 }
 
-std::vector< market_trade > market_history_api_impl::get_trade_history( time_point_sec start, time_point_sec end, uint32_t limit ) const
+std::vector< market_trade > market_history_api_impl::get_trade_history( const std::string& asset_a, const std::string& asset_b,
+                                                                        time_point_sec start, time_point_sec end, uint32_t limit ) const
 {
    FC_ASSERT( limit <= 1000 );
-   const auto& bucket_idx = app.chain_database()->get_index_type< order_history_index >().indices().get< by_time >();
-   auto itr = bucket_idx.lower_bound( start );
+
+   asset_id_type asset_id_a = get_asset( asset_a );
+   asset_id_type asset_id_b = get_asset( asset_b );
+   if( asset_id_a > asset_id_b ) std::swap( asset_id_a, asset_id_b );
+
+   const auto& bucket_idx = db.get_index_type< order_history_index >().indices().get< by_time >();
+   auto itr = bucket_idx.lower_bound( boost::make_tuple( asset_id_a, asset_id_b, start ) );
 
    std::vector< market_trade > result;
-
-   while( itr != bucket_idx.end() && itr->time <= end && result.size() < limit )
+   while( itr != bucket_idx.end() && itr->asset_a() == asset_id_a && itr->asset_b() == asset_id_b
+          && itr->time <= end && result.size() < limit )
    {
       market_trade trade;
       trade.date = itr->time;
@@ -135,38 +165,45 @@ std::vector< market_trade > market_history_api_impl::get_trade_history( time_poi
    return result;
 }
 
-vector< market_trade > market_history_api_impl::get_recent_trades( uint32_t limit = 1000 ) const
+vector< market_trade > market_history_api_impl::get_recent_trades( const std::string& asset_a, const std::string& asset_b, uint32_t limit = 1000 ) const
 {
    FC_ASSERT( limit <= 1000 );
-   const auto& order_idx = app.chain_database()->get_index_type< order_history_index >().indices().get< by_time >();
-   auto itr = order_idx.rbegin();
+
+   asset_id_type asset_id_a = get_asset( asset_a );
+   asset_id_type asset_id_b = get_asset( asset_b );
+   if( asset_id_a > asset_id_b ) std::swap( asset_id_a, asset_id_b );
+
+   const auto& order_idx = db.get_index_type< order_history_index >().indices().get< by_time >();
+   auto itr = order_idx.upper_bound( boost::make_tuple( asset_id_a, asset_id_b ) );
 
    vector< market_trade > result;
-
-   while( itr != order_idx.rend() && result.size() < limit )
+   while( itr != order_idx.begin() && (--itr)->asset_a() == asset_id_a && itr->asset_b() == asset_id_b && result.size() < limit )
    {
       market_trade trade;
       trade.date = itr->time;
       trade.current_pays = itr->op.current_pays;
       trade.open_pays = itr->op.open_pays;
       result.push_back( trade );
-      ++itr;
    }
 
    return result;
 }
 
-std::vector< bucket_object > market_history_api_impl::get_market_history( uint32_t bucket_seconds, time_point_sec start, time_point_sec end ) const
+std::vector< bucket_object > market_history_api_impl::get_market_history( const std::string& asset_a, const std::string& asset_b,
+                                                                          uint32_t bucket_seconds, time_point_sec start, time_point_sec end ) const
 {
-   const auto& bucket_idx = app.chain_database()->get_index_type< bucket_index >().indices().get< by_bucket >();
-   auto itr = bucket_idx.lower_bound( boost::make_tuple( bucket_seconds, start ) );
+   asset_id_type asset_id_a = get_asset( asset_a );
+   asset_id_type asset_id_b = get_asset( asset_b );
+   normalize_asset_ids( asset_id_a, asset_id_b );
+
+   const auto& bucket_idx = db.get_index_type< bucket_index >().indices().get< by_bucket >();
+   auto itr = bucket_idx.lower_bound( boost::make_tuple( asset_id_a, asset_id_b, bucket_seconds, start ) );
 
    std::vector< bucket_object > result;
-
-   while( itr != bucket_idx.end() && itr->seconds == bucket_seconds && itr->open < end )
+   while( itr != bucket_idx.end() && itr->asset_a == asset_id_a && itr->asset_b == asset_id_b
+          && itr->seconds == bucket_seconds && itr->start < end )
    {
       result.push_back( *itr );
-
       ++itr;
    }
 
@@ -188,34 +225,36 @@ market_history_api::market_history_api( const btcm::app::api_context& ctx )
 
 void market_history_api::on_api_startup() {}
 
-market_ticker market_history_api::get_ticker() const
+market_ticker market_history_api::get_ticker( const std::string& asset_a, const std::string& asset_b ) const
 {
-   return my->get_ticker();
+   return my->get_ticker( asset_a, asset_b );
 }
 
-market_volume market_history_api::get_volume() const
+market_volume market_history_api::get_volume( const std::string& asset_a, const std::string& asset_b ) const
 {
-   return my->get_volume();
+   return my->get_volume( asset_a, asset_b );
 }
 
-order_book market_history_api::get_order_book( uint32_t limit ) const
+order_book market_history_api::get_order_book( const std::string& asset_a, const std::string& asset_b, uint32_t limit ) const
 {
-   return my->get_order_book( limit );
+   return my->get_order_book( asset_a, asset_b, limit );
 }
 
-std::vector< market_trade > market_history_api::get_trade_history( time_point_sec start, time_point_sec end, uint32_t limit ) const
+std::vector< market_trade > market_history_api::get_trade_history( const std::string& asset_a, const std::string& asset_b,
+                                                                   time_point_sec start, time_point_sec end, uint32_t limit ) const
 {
-   return my->get_trade_history( start, end, limit );
+   return my->get_trade_history( asset_a, asset_b, start, end, limit );
 }
 
-std::vector< market_trade > market_history_api::get_recent_trades( uint32_t limit ) const
+std::vector< market_trade > market_history_api::get_recent_trades( const std::string& asset_a, const std::string& asset_b, uint32_t limit ) const
 {
-   return my->get_recent_trades( limit );
+   return my->get_recent_trades( asset_a, asset_b, limit );
 }
 
-std::vector< bucket_object > market_history_api::get_market_history( uint32_t bucket_seconds, time_point_sec start, time_point_sec end ) const
+std::vector< bucket_object > market_history_api::get_market_history( const std::string& asset_a, const std::string& asset_b,
+                                                                     uint32_t bucket_seconds, time_point_sec start, time_point_sec end ) const
 {
-   return my->get_market_history( bucket_seconds, start, end );
+   return my->get_market_history( asset_a, asset_b, bucket_seconds, start, end );
 }
 
 flat_set< uint32_t > market_history_api::get_market_history_buckets() const
