@@ -61,7 +61,8 @@ void market_history_plugin_impl::update_market_histories( const operation_object
       db.create< order_history_object >( [&db,&op]( order_history_object& ho )
       {
          ho.time = db.head_block_time();
-         ho.op = op;
+         ho.taker_paid = op.current_pays;
+         ho.maker_paid = op.open_pays;
       });
 
       if( !_maximum_history_per_bucket_size ) return;

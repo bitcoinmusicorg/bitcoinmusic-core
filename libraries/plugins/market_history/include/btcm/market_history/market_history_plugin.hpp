@@ -83,11 +83,13 @@ struct bucket_object : public abstract_object< bucket_object >
 
 struct order_history_object : public abstract_object< order_history_object >
 {
-   fc::time_point_sec   time;
-   fill_order_operation op;
+public:
+   fc::time_point_sec time;
+   asset taker_paid;
+   asset maker_paid;
 
-   asset_id_type asset_a()const { return op.current_pays.asset_id < op.open_pays.asset_id ? op.current_pays.asset_id : op.open_pays.asset_id; }
-   asset_id_type asset_b()const { return op.current_pays.asset_id < op.open_pays.asset_id ? op.open_pays.asset_id : op.current_pays.asset_id; }
+   asset_id_type asset_a()const { return taker_paid.asset_id < maker_paid.asset_id ? taker_paid.asset_id : maker_paid.asset_id; }
+   asset_id_type asset_b()const { return taker_paid.asset_id < maker_paid.asset_id ? maker_paid.asset_id : taker_paid.asset_id; }
 };
 
 //struct by_id;
@@ -138,4 +140,4 @@ FC_REFLECT_DERIVED( btcm::market_history::bucket_object, (graphene::db::object),
 
 FC_REFLECT_DERIVED( btcm::market_history::order_history_object, (graphene::db::object),
                      (time)
-                     (op) )
+                     (taker_paid)(maker_paid) )

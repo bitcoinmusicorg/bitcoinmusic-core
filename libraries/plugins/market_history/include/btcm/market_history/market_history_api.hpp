@@ -42,6 +42,8 @@ public:
    asset bid;
    asset ask;
 
+   order( asset _bid, asset _ask ) : bid(_bid), ask(_ask) {}
+
    chain::price price()const{ return bid / ask; }
 };
 
@@ -56,6 +58,9 @@ struct market_trade
    time_point_sec date;
    asset          current_pays;
    asset          open_pays;
+
+   market_trade( const order_history_object& oho )
+      : date(oho.time), current_pays(oho.taker_paid), open_pays(oho.maker_paid) {}
 };
 
 class market_history_api
@@ -125,7 +130,7 @@ class market_history_api
       /**
        * @brief Returns the bucket seconds being tracked by the plugin.
        */
-      chain::flat_set< uint32_t > get_market_history_buckets() const;
+      const chain::flat_set< uint32_t >& get_market_history_buckets() const;
 
    private:
       std::shared_ptr< detail::market_history_api_impl > my;

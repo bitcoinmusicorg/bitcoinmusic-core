@@ -301,42 +301,26 @@ BOOST_AUTO_TEST_CASE( index_test )
       BOOST_REQUIRE( order != order_hist_idx.end() );
 
       BOOST_CHECK( order->time == fill_order_a_time );
-      BOOST_CHECK( order->op.current_owner == "bob" );
-      BOOST_CHECK( order->op.current_orderid == 0 );
-      BOOST_CHECK( order->op.current_pays == ASSET( "1.500 2.28.0" ) );
-      BOOST_CHECK( order->op.open_owner == "alice" );
-      BOOST_CHECK( order->op.open_orderid == 0 );
-      BOOST_CHECK( order->op.open_pays == ASSET( "0.750 2.28.2" ) );
+      BOOST_CHECK( order->taker_paid == ASSET( "1.500 2.28.0" ) );
+      BOOST_CHECK( order->maker_paid == ASSET( "0.750 2.28.2" ) );
       order++;
       BOOST_REQUIRE( order != order_hist_idx.end() );
 
       BOOST_CHECK( order->time == fill_order_b_time );
-      BOOST_CHECK( order->op.current_owner == "sam" );
-      BOOST_CHECK( order->op.current_orderid == 0 );
-      BOOST_CHECK( order->op.current_pays == ASSET( "0.500 2.28.0" ) );
-      BOOST_CHECK( order->op.open_owner == "alice" );
-      BOOST_CHECK( order->op.open_orderid == 0 );
-      BOOST_CHECK( order->op.open_pays == ASSET( "0.250 2.28.2" ) );
+      BOOST_CHECK( order->taker_paid == ASSET( "0.500 2.28.0" ) );
+      BOOST_CHECK( order->maker_paid == ASSET( "0.250 2.28.2" ) );
       order++;
       BOOST_REQUIRE( order != order_hist_idx.end() );
 
       BOOST_CHECK( order->time == fill_order_c_time );
-      BOOST_CHECK( order->op.current_owner == "alice" );
-      BOOST_CHECK( order->op.current_orderid == 0 );
-      BOOST_CHECK( order->op.current_pays == ASSET( "0.250 2.28.2" ) );
-      BOOST_CHECK( order->op.open_owner == "sam" );
-      BOOST_CHECK( order->op.open_orderid == 0 );
-      BOOST_CHECK( order->op.open_pays == ASSET( "0.500 2.28.0" ) );
+      BOOST_CHECK( order->taker_paid == ASSET( "0.250 2.28.2" ) );
+      BOOST_CHECK( order->maker_paid == ASSET( "0.500 2.28.0" ) );
       order++;
       BOOST_REQUIRE( order != order_hist_idx.end() );
 
       BOOST_CHECK( order->time == fill_order_c_time );
-      BOOST_CHECK( order->op.current_owner == "bob" );
-      BOOST_CHECK( order->op.current_orderid == 0 );
-      BOOST_CHECK( order->op.current_pays == ASSET( "0.450 2.28.0" ) );
-      BOOST_CHECK( order->op.open_owner == "alice" );
-      BOOST_CHECK( order->op.open_orderid == 0 );
-      BOOST_CHECK( order->op.open_pays == ASSET( "0.250 2.28.2" ) );
+      BOOST_CHECK( order->taker_paid == ASSET( "0.450 2.28.0" ) );
+      BOOST_CHECK( order->maker_paid == ASSET( "0.250 2.28.2" ) );
       order++;
 
       BOOST_CHECK( order == order_hist_idx.end() );
@@ -514,7 +498,7 @@ BOOST_AUTO_TEST_CASE( api_test )
       BOOST_CHECK_EQUAL( db.get_balance( "bob", eth.id ).amount.value, 10000000000 - sales * 10000 );
 
       // test get_market_history_buckets
-      auto sizes = api.get_market_history_buckets();
+      const auto& sizes = api.get_market_history_buckets();
       BOOST_CHECK( sizes == (fc::flat_set<uint32_t>{ 15, 60, 300, 3600, 86400 }) );
 
       // test get_ticker
