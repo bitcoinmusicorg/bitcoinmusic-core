@@ -65,10 +65,17 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
    {
       auto prefix = op.symbol.substr( 0, dotpos );
       auto asset_symbol_itr = asset_indx.find( prefix );
-      FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Asset ${s} may only be created by issuer of ${p}, but ${p} has not been registered",
+      FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Sub-asset ${s} may only be created if ${p} exists",
                  ("s",op.symbol)("p",prefix) );
-      FC_ASSERT( asset_symbol_itr->issuer == issuer.id, "Asset ${s} may only be created by issuer of ${p}",
-                 ("s",op.symbol)("p",prefix) );
+      if( asset_symbol_itr->options.flags & hashtag )
+      {
+	 account_id_type holder = db().get_nft_holder( *asset_symbol_itr );
+         FC_ASSERT( holder == issuer.id, "Asset ${s} may only be created by holder of ${p}",
+                    ("s",op.symbol)("p",prefix) );
+      }
+      else
+         FC_ASSERT( asset_symbol_itr->issuer == issuer.id, "Asset ${s} may only be created by issuer of ${p}",
+                    ("s",op.symbol)("p",prefix) );
    }
 
    if( op.common_options.flags & hashtag ) // move to validate() after hf

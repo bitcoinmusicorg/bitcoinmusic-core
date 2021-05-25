@@ -567,4 +567,141 @@ BOOST_FIXTURE_TEST_CASE( create_hashtag_flag, database_fixture )
    }
 } FC_LOG_AND_RETHROW() }
 
+BOOST_AUTO_TEST_CASE( create_subasset )
+{ try {
+
+   ACTORS( (alice)(bob)(federation) );
+   fund( "alice", 50000000 );
+   fund( "bob", 50000000 );
+   fund( "federation", 5000000000 );
+
+   set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
+
+   trx.clear();
+   trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
+
+   {
+      convert_operation cop;
+      cop.owner = "federation";
+      cop.amount = asset(5 * BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+      trx.operations.emplace_back(std::move(cop));
+      asset_create_operation aco;
+      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.issuer = "federation";
+      aco.symbol = "FASHION";
+      aco.precision = 0;
+      aco.common_options.max_supply = 1;
+      aco.common_options.issuer_permissions = hashtag;
+      aco.common_options.flags = hashtag;
+      aco.common_options.description = "IOU for BitShares core token";
+      trx.operations.emplace_back(aco);
+      aco.symbol = "BTC";
+      aco.precision = 8;
+      aco.common_options.max_supply = 2100000000000;
+      aco.common_options.issuer_permissions = 0;
+      aco.common_options.flags = 0;
+      aco.common_options.description = "IOU for Bitcoin";
+      trx.operations.emplace_back(std::move(aco));
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+
+      asset_issue_operation aio;
+      aio.issuer = "federation";
+      aio.issue_to_account = "federation";
+      aio.asset_to_issue = asset( 1, db.get_asset( "FASHION" ).id );
+      trx.operations.emplace_back(std::move(aio));
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+
+      cop.owner = "alice";
+      cop.amount = asset(2 * BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+      trx.operations.emplace_back(cop);
+      sign(trx, alice_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+
+      cop.owner = "bob";
+      trx.operations.emplace_back(std::move(cop));
+      sign(trx, bob_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+   }
+
+   generate_block();
+
+   const auto& fashion = db.get_asset( "FASHION" );
+
+   {
+      asset_create_operation aco;
+      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.issuer = "alice";
+      aco.symbol = "FASHION.SHIRT";
+      aco.common_options.description = "Test sub";
+      trx.operations.emplace_back(aco);
+      sign(trx, alice_private_key);
+      BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+      trx.clear();
+
+      aco.issuer = "federation";
+      trx.operations.emplace_back(aco);
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+
+      transfer_operation top;
+      top.from = "federation";
+      top.to = "alice";
+      top.amount = fashion.amount(1);
+      trx.operations.emplace_back(top);
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+
+      aco.symbol = "FASHION.HAT";
+      aco.common_options.description = "Another test sub";
+      trx.operations.emplace_back(aco);
+      sign(trx, federation_private_key);
+      BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+      trx.clear();
+
+      aco.issuer = "alice";
+      trx.operations.emplace_back(aco);
+      top.from = "alice";
+      top.to = "bob";
+      trx.operations.emplace_back(top);
+      sign(trx, alice_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+
+      aco.symbol = "FASHION.SHOE";
+      aco.common_options.description = "Yet another test sub";
+      trx.operations.emplace_back(aco);
+      sign(trx, alice_private_key);
+      BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+      trx.clear();
+
+      aco.issuer = "bob";
+      trx.operations.emplace_back(aco);
+      sign(trx, bob_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+
+      aco.symbol = "BTC.SHOE";
+      aco.common_options.description = "BTC test sub";
+      trx.operations.emplace_back(aco);
+      sign(trx, bob_private_key);
+      BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+      trx.clear();
+
+      aco.issuer = "federation";
+      trx.operations.emplace_back(aco);
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+   }
+
+} FC_LOG_AND_RETHROW() }
+
 BOOST_AUTO_TEST_SUITE_END()
