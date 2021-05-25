@@ -34,9 +34,10 @@ namespace btcm { namespace chain {
    enum asset_issuer_permission_flags
    {
       hashtag = 0x01, /**< allows token holder to create sub-asset and enforces max supply = 1 and precision = 0 */
+      allow_subasset_creation = 0x02, /**< allows anyone to create subassets for twice the normal fee, requires hashtag */
    };
 
-   const static uint32_t ALLOWED_ASSET_PERMISSIONS = 1;
+   const static uint32_t ALLOWED_ASSET_PERMISSIONS = 3;
    const static uint32_t DEFAULT_UIA_PERMISSIONS = 0;
 
    /**

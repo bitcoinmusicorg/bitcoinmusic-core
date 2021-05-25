@@ -1101,7 +1101,7 @@ public:
          create_op.precision = precision;
          create_op.common_options.description = std::move(description);
          create_op.common_options.max_supply=max_supply;
-         create_op.common_options.issuer_permissions = flags;
+         create_op.common_options.issuer_permissions = flags | ((flags & hashtag) ? allow_subasset_creation : 0);
          create_op.common_options.flags = flags;
          signed_transaction tx;
          tx.operations.push_back( create_op );

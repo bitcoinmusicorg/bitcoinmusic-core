@@ -51,9 +51,22 @@ namespace impl {
                           "Disallowed permissions detected!" );
                FC_ASSERT( !(op.common_options.flags & ~ALLOWED_ASSET_PERMISSIONS),
                           "Disallowed flags detected!" );
-               if( op.common_options.flags & hashtag )
+               if( (op.common_options.flags & hashtag) || (op.common_options.issuer_permissions & hashtag) )
+               {
                   FC_ASSERT( op.precision == 0 && op.common_options.max_supply == 1,
                              "hashtag flag requires precision 0 and max_supply 1" );
+                  FC_ASSERT( (op.common_options.flags & hashtag) || !(op.common_options.flags & allow_subasset_creation),
+                             "allow_subasset_creation flag requires hashtag" );
+                  FC_ASSERT( (op.common_options.issuer_permissions & hashtag)
+                             || !(op.common_options.issuer_permissions & allow_subasset_creation),
+                             "allow_subasset_creation permission requires hashtag" );
+               }
+               else
+               {
+                  FC_ASSERT( !(op.common_options.flags & allow_subasset_creation)
+                             && !(op.common_options.issuer_permissions & allow_subasset_creation),
+                             "allow_subasset_creation flag/permission requires hashtag" );
+               }
                return;
             }
          }

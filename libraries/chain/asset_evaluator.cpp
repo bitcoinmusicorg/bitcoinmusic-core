@@ -67,22 +67,41 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
       auto asset_symbol_itr = asset_indx.find( prefix );
       FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Sub-asset ${s} may only be created if ${p} exists",
                  ("s",op.symbol)("p",prefix) );
-      if( asset_symbol_itr->options.flags & hashtag )
+      if( db().has_hardfork( BTCM_HARDFORK_0_1 ) && (asset_symbol_itr->options.flags & hashtag) )
       {
 	 account_id_type holder = db().get_nft_holder( *asset_symbol_itr );
-         FC_ASSERT( holder == issuer.id, "Asset ${s} may only be created by holder of ${p}",
-                    ("s",op.symbol)("p",prefix) );
+	 if( asset_symbol_itr->options.flags & allow_subasset_creation )
+	 {
+            FC_ASSERT( op.fee.amount >= 2*BTCM_SUBASSET_CREATION_FEE, "Insufficient fee, need ${m}",
+		       ("m",2*BTCM_SUBASSET_CREATION_FEE) );
+	 }
+	 else
+            FC_ASSERT( holder == issuer.id, "Asset ${s} may only be created by holder of ${p}",
+                       ("s",op.symbol)("p",prefix) );
       }
       else
          FC_ASSERT( asset_symbol_itr->issuer == issuer.id, "Asset ${s} may only be created by issuer of ${p}",
                     ("s",op.symbol)("p",prefix) );
    }
 
-   if( op.common_options.flags & hashtag ) // move to validate() after hf
+   if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
    {
-      if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
+      if( (op.common_options.flags & hashtag) || (op.common_options.issuer_permissions & hashtag) )
+      {
          FC_ASSERT( op.precision == 0 && op.common_options.max_supply == 1,
                     "hashtag flag requires precision 0 and max_supply 1" );
+         FC_ASSERT( (op.common_options.flags & hashtag) || !(op.common_options.flags & allow_subasset_creation),
+                    "allow_subasset_creation flag requires hashtag" );
+         FC_ASSERT( (op.common_options.issuer_permissions & hashtag)
+                    || !(op.common_options.issuer_permissions & allow_subasset_creation),
+                    "allow_subasset_creation permission requires hashtag" );
+      }
+      else
+      {
+         FC_ASSERT( !(op.common_options.flags & allow_subasset_creation)
+                    && !(op.common_options.issuer_permissions & allow_subasset_creation),
+                    "allow_subasset_creation flag/permission requires hashtag" );
+      }
    }
 
    db().pay_fee( issuer, op.fee );
