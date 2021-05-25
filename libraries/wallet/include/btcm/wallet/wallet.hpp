@@ -889,7 +889,7 @@ class wallet_api
        * @param broadcast Broadcast the transaction?
        */
       annotated_signed_transaction create_asset(string issuer, string asset_name, string description,
-                                                uint8_t precision, uint64_t max_supply, bool broadcast);
+                                                uint8_t precision, uint64_t max_supply, uint16_t flags, bool broadcast);
       
       /**
        * Issue asset to an account

@@ -1085,7 +1085,7 @@ public:
    }
 
    annotated_signed_transaction create_asset(string issuer, string asset_name, string description,
-                                             uint8_t precision, uint64_t max_supply, bool broadcast)
+                                             uint8_t precision, uint64_t max_supply, uint16_t flags, bool broadcast)
    {
       try {
          account_object issuer_account = get_account( issuer );
@@ -1101,8 +1101,8 @@ public:
          create_op.precision = precision;
          create_op.common_options.description = std::move(description);
          create_op.common_options.max_supply=max_supply;
-         create_op.common_options.issuer_permissions=DEFAULT_UIA_PERMISSIONS;
-         create_op.common_options.flags=DEFAULT_UIA_PERMISSIONS;
+         create_op.common_options.issuer_permissions = flags;
+         create_op.common_options.flags = flags;
          signed_transaction tx;
          tx.operations.push_back( create_op );
          tx.validate();
@@ -2653,9 +2653,10 @@ uint64_t wallet_api::get_content_scoring( string content )
    return my->_remote_db->get_content_scoring(content);
 }
 
-annotated_signed_transaction wallet_api::create_asset(string issuer, string asset_name, string description, uint8_t precision, uint64_t max_supply, bool broadcast)
+annotated_signed_transaction wallet_api::create_asset(string issuer, string asset_name, string description,
+                                                      uint8_t precision, uint64_t max_supply, uint16_t flags, bool broadcast)
 {
-   return my->create_asset(issuer, asset_name, description, precision, max_supply, broadcast);
+   return my->create_asset(issuer, asset_name, description, precision, max_supply, flags, broadcast);
 }
 
 annotated_signed_transaction wallet_api::issue_asset(string asset_name, string to_account, string amount, bool broadcast)
