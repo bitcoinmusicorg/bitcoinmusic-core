@@ -33,10 +33,10 @@ namespace btcm { namespace chain {
 
    enum asset_issuer_permission_flags
    {
-      dummy    = 0x01, /**< unused */
+      hashtag = 0x01, /**< allows token holder to create sub-asset and enforces max supply = 1 and precision = 0 */
    };
 
-   const static uint32_t ALLOWED_ASSET_PERMISSIONS = 0;
+   const static uint32_t ALLOWED_ASSET_PERMISSIONS = 1;
    const static uint32_t DEFAULT_UIA_PERMISSIONS = 0;
 
    /**
@@ -86,10 +86,6 @@ namespace btcm { namespace chain {
       uint8_t                 precision = BTCM_ASSET_PRECISION;
 
       /// Options common to all assets.
-      ///
-      /// @note common_options.core_exchange_rate technically needs to store the asset ID of this new asset. Since this
-      /// ID is not known at the time this operation is created, create this price as though the new asset has instance
-      /// ID 1, and the chain will overwrite it with the new asset's ID.
       asset_options              common_options;
       extensions_type extensions;
 

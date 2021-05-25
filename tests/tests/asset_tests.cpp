@@ -447,4 +447,124 @@ BOOST_AUTO_TEST_CASE(trade_assets_test)
 
 } FC_LOG_AND_RETHROW() }
 
+BOOST_FIXTURE_TEST_CASE( create_hashtag_flag, database_fixture )
+{ try {
+   initialize_clean( 0 );
+
+   ACTORS( (federation) );
+   fund( "federation", 5000000000 );
+   set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
+   trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
+   trx.clear();
+
+   generate_block();
+
+   BOOST_REQUIRE( !db.has_hardfork( BTCM_HARDFORK_0_1 ) );
+
+   {
+      convert_operation cop;
+      cop.owner = "federation";
+      cop.amount = asset(50 * BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+      trx.operations.emplace_back(std::move(cop));
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+
+      asset_create_operation aco;
+      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.issuer = "federation";
+      aco.symbol = "PREHF";
+      aco.precision = 0;
+      aco.common_options.max_supply = 1;
+      aco.common_options.description = "Hashtag test";
+      aco.common_options.flags = hashtag;
+      trx.operations.emplace_back(aco);
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+   }
+
+   generate_block();
+
+   db.set_hardfork( BTCM_HARDFORK_0_1, true );
+
+   generate_block();
+
+   const auto& pre = db.get_asset( "PREHF" );
+   BOOST_CHECK_EQUAL( 0u, pre.options.flags );
+   BOOST_CHECK_EQUAL( 0u, pre.options.issuer_permissions );
+
+   {
+      asset_create_operation aco;
+      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.issuer = "federation";
+      aco.symbol = "HASH";
+      aco.precision = 5;
+      aco.common_options.max_supply = 100000;
+      aco.common_options.description = "Hashtag test";
+      aco.common_options.flags = hashtag;
+      aco.common_options.issuer_permissions = hashtag;
+      trx.operations.emplace_back(aco);
+      sign(trx, federation_private_key);
+      BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+      trx.clear();
+
+      proposal_create_operation pop;
+      pop.expiration_time = db.head_block_time() + fc::days(1);
+      pop.proposed_ops.emplace_back( aco );
+      trx.operations.emplace_back(pop);
+      BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+      trx.clear();
+
+      aco.precision = 0;
+      aco.common_options.max_supply = 100000;
+      trx.operations.emplace_back(aco);
+      sign(trx, federation_private_key);
+      BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+      trx.clear();
+
+      pop.proposed_ops.clear();
+      pop.proposed_ops.emplace_back( aco );
+      trx.operations.emplace_back(pop);
+      BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+      trx.clear();
+
+      aco.precision = 5;
+      aco.common_options.max_supply = 1;
+      trx.operations.emplace_back(aco);
+      sign(trx, federation_private_key);
+      BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+      trx.clear();
+
+      pop.proposed_ops.clear();
+      pop.proposed_ops.emplace_back( aco );
+      trx.operations.emplace_back(pop);
+      BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+      trx.clear();
+
+      aco.precision = 0;
+      aco.common_options.max_supply = 1;
+      trx.operations.emplace_back(aco);
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+
+      pop.proposed_ops.clear();
+      pop.proposed_ops.emplace_back( aco );
+      trx.operations.emplace_back(pop);
+      PUSH_TX(db, trx);
+      trx.clear();
+
+      aco.symbol = "SOME";
+      aco.precision = 5;
+      aco.common_options.max_supply = 100000;
+      aco.common_options.flags = 0;
+      aco.common_options.issuer_permissions = 0;
+      trx.operations.emplace_back(aco);
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+   }
+} FC_LOG_AND_RETHROW() }
+
 BOOST_AUTO_TEST_SUITE_END()

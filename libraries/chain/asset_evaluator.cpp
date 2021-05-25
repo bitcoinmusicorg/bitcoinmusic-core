@@ -42,7 +42,12 @@ bool _is_authorized_asset( const database& d, const account_object& acct, const 
 void asset_create_evaluator::do_apply( const asset_create_operation& op )
 { try {
    if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
-      FC_ASSERT( !op.common_options.issuer_permissions && !op.common_options.flags, "No flags allowed!" );
+   {
+      FC_ASSERT( !(op.common_options.issuer_permissions & ~ALLOWED_ASSET_PERMISSIONS),
+                 "Disallowed permissions detected!" );
+      FC_ASSERT( !(op.common_options.flags & ~ALLOWED_ASSET_PERMISSIONS),
+                 "Disallowed flags detected!" );
+   }
 
    auto& asset_indx = db().get_index_type<asset_index>().indices().get<by_symbol>();
    auto asset_symbol_itr = asset_indx.find( op.symbol );
@@ -64,6 +69,13 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
                  ("s",op.symbol)("p",prefix) );
       FC_ASSERT( asset_symbol_itr->issuer == issuer.id, "Asset ${s} may only be created by issuer of ${p}",
                  ("s",op.symbol)("p",prefix) );
+   }
+
+   if( op.common_options.flags & hashtag ) // move to validate() after hf
+   {
+      if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
+         FC_ASSERT( op.precision == 0 && op.common_options.max_supply == 1,
+                    "hashtag flag requires precision 0 and max_supply 1" );
    }
 
    db().pay_fee( issuer, op.fee );

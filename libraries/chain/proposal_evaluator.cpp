@@ -46,7 +46,16 @@ namespace impl {
 
          void operator()( const btcm::chain::asset_create_operation& op )const {
             if( _db.has_hardfork( BTCM_HARDFORK_0_1 ) )
-               FC_ASSERT( !op.common_options.issuer_permissions && !op.common_options.flags, "No flags allowed!" );
+            {
+               FC_ASSERT( !(op.common_options.issuer_permissions & ~ALLOWED_ASSET_PERMISSIONS),
+                          "Disallowed permissions detected!" );
+               FC_ASSERT( !(op.common_options.flags & ~ALLOWED_ASSET_PERMISSIONS),
+                          "Disallowed flags detected!" );
+               if( op.common_options.flags & hashtag )
+                  FC_ASSERT( op.precision == 0 && op.common_options.max_supply == 1,
+                             "hashtag flag requires precision 0 and max_supply 1" );
+               return;
+            }
          }
 
          void operator()( const btcm::chain::proposal_create_operation& v )const {
