@@ -2479,8 +2479,8 @@ void database::init_genesis( const genesis_state_type& initial_allocation )
                string issuer_name = asset.issuer_name;
                a.issuer = get_account_id(issuer_name);
                a.options.max_supply = asset.max_supply;
-               a.options.flags = disable_confidential;
-               a.options.issuer_permissions = UIA_ASSET_ISSUER_PERMISSION_MASK;
+               a.options.flags = 0;
+               a.options.issuer_permissions = 0;
          });
       }
       //initial balances
@@ -3493,6 +3493,10 @@ void database::apply_hardfork( uint32_t hardfork )
 
    switch( hardfork )
    {
+      case BTCM_HARDFORK_0_1:
+         for( const auto& asset : get_index_type<asset_index>().indices() )
+            modify( asset, [] (asset_object& a) { a.options.flags = a.options.issuer_permissions = 0; } );
+         break;
       default:
          break;
    }

@@ -104,7 +104,7 @@ void asset_options::validate()const
    FC_ASSERT( market_fee_percent <= BTCM_100_PERCENT );
    FC_ASSERT( max_market_fee >= 0 && max_market_fee <= BTCM_MAX_SHARE_SUPPLY );
    // There must be no high bits in permissions whose meaning is not known.
-   FC_ASSERT( !(issuer_permissions & ~ ASSET_ISSUER_PERMISSION_MASK) );
+   FC_ASSERT( !(issuer_permissions & ~0x7f) );
 
 }
 

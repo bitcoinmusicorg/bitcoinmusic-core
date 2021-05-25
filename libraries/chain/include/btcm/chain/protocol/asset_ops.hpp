@@ -33,17 +33,11 @@ namespace btcm { namespace chain {
 
    enum asset_issuer_permission_flags
    {
-      charge_market_fee    = 0x01, /**< an issuer-specified percentage of all market trades in this asset is paid to the issuer */
-      white_list           = 0x02, /**< accounts must be whitelisted in order to hold this asset */
-      override_authority   = 0x04, /**< issuer may transfer asset back to himself */
-      transfer_restricted  = 0x08, /**< require the issuer to be one party to every transfer */
-      disable_force_settle = 0x10, /**< disable force settling */
-      global_settle        = 0x20, /**< allow the bitasset issuer to force a global settling -- this may be set in permissions, but not flags */
-      disable_confidential = 0x40, /**< allow the asset to be used with confidential transactions */
+      dummy    = 0x01, /**< unused */
    };
 
-   const static uint32_t ASSET_ISSUER_PERMISSION_MASK = charge_market_fee|white_list|override_authority|transfer_restricted|disable_force_settle|global_settle|disable_confidential;
-   const static uint32_t UIA_ASSET_ISSUER_PERMISSION_MASK = charge_market_fee|transfer_restricted|disable_confidential;
+   const static uint32_t ALLOWED_ASSET_PERMISSIONS = 0;
+   const static uint32_t DEFAULT_UIA_PERMISSIONS = 0;
 
    /**
     * @brief The asset_options struct contains options available on all assets in the network
@@ -62,7 +56,7 @@ namespace btcm { namespace chain {
       share_type max_market_fee = BTCM_MAX_SHARE_SUPPLY;
 
       /// The flags which the issuer has permission to update. See @ref asset_issuer_permission_flags
-      uint16_t issuer_permissions = UIA_ASSET_ISSUER_PERMISSION_MASK;
+      uint16_t issuer_permissions = DEFAULT_UIA_PERMISSIONS;
       /// The currently active flags on this permission. See @ref asset_issuer_permission_flags
       uint16_t flags = 0;
 

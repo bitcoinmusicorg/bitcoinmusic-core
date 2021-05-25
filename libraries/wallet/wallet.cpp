@@ -1101,7 +1101,8 @@ public:
          create_op.precision = precision;
          create_op.common_options.description = std::move(description);
          create_op.common_options.max_supply=max_supply;
-         create_op.common_options.flags=override_authority|disable_confidential;
+         create_op.common_options.issuer_permissions=DEFAULT_UIA_PERMISSIONS;
+         create_op.common_options.flags=DEFAULT_UIA_PERMISSIONS;
          signed_transaction tx;
          tx.operations.push_back( create_op );
          tx.validate();
@@ -1119,15 +1120,14 @@ public:
          
          asset_update_operation update_op;
          update_op.issuer = get_account_from_id(asset_to_update->issuer)->name;
-         update_op.new_options.flags=override_authority|disable_confidential;
+         update_op.new_options = asset_to_update->options;
          update_op.asset_to_update = asset_to_update->id;
          if(new_issuer.length()>0){
             get_account( new_issuer );
             update_op.new_issuer = new_issuer;
          }
-         update_op.new_options.max_supply=max_supply;
          if(description.length()>0){
-            update_op.new_options.description=description;
+            update_op.new_options.description = description;
          }
 
          signed_transaction tx;

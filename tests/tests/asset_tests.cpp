@@ -122,6 +122,74 @@ BOOST_AUTO_TEST_CASE(create_asset_test)
     BOOST_CHECK_EQUAL(60, amount.amount.value);
 } FC_LOG_AND_RETHROW() }
 
+BOOST_FIXTURE_TEST_CASE( flags_test, database_fixture )
+{ try {
+    initialize_clean( 0 );
+
+    ACTORS((federation));
+    fund( "federation", 5000000000 );
+
+    set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
+
+    generate_block();
+
+    trx.clear();
+    trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
+
+    {
+        convert_operation cop;
+        cop.owner = "federation";
+        cop.amount = asset(50 * BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+        trx.operations.emplace_back(std::move(cop));
+
+        asset_create_operation aco;
+        aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+        aco.issuer = "federation";
+        aco.symbol = "BTS";
+        aco.precision = 5;
+        aco.common_options.description = "IOU for BitShares core token";
+        aco.common_options.issuer_permissions = 73;
+        aco.common_options.flags = 73;
+        trx.operations.emplace_back(std::move(aco));
+        sign(trx, federation_private_key);
+        PUSH_TX(db, trx);
+        trx.clear();
+    }
+
+    generate_block();
+
+    db.set_hardfork( BTCM_HARDFORK_0_1, true );
+
+    generate_block();
+
+    const auto& bts = db.get_asset( "BTS" );
+    BOOST_CHECK_EQUAL( 0u, bts.options.flags );
+    BOOST_CHECK_EQUAL( 0u, bts.options.issuer_permissions );
+
+    {
+        asset_create_operation aco;
+        aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+        aco.issuer = "federation";
+        aco.symbol = "BTS2";
+        aco.precision = 5;
+        aco.common_options.description = "IOU for BitShares core token";
+        aco.common_options.issuer_permissions = 73;
+        aco.common_options.flags = 73;
+        trx.operations.emplace_back(std::move(aco));
+        sign(trx, federation_private_key);
+        BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+        trx.clear();
+
+        aco.common_options.issuer_permissions = 0;
+        aco.common_options.flags = 0;
+        trx.operations.emplace_back(std::move(aco));
+        sign(trx, federation_private_key);
+        PUSH_TX(db, trx);
+        trx.clear();
+    }
+
+} FC_LOG_AND_RETHROW() }
+
 BOOST_AUTO_TEST_CASE(trade_asset_test)
 { try {
     ACTORS((bob)(federation));

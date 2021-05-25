@@ -45,17 +45,6 @@ namespace btcm { namespace chain {
          static const uint8_t type_id  = impl_asset_object_type;
          share_type current_supply;
 
-         /// This function does not check if any registered asset has this symbol or not; it simply checks whether the
-         /// symbol would be valid.
-         /// @return true if symbol is a valid ticker symbol; false otherwise.
-         //static bool is_valid_symbol( const string& symbol );
-
-         /// @return true if this asset charges a fee for the issuer on market operations; false otherwise
-         bool charges_market_fees()const { return options.flags & charge_market_fee; }
-         /// @return true if this asset may only be transferred to/from the issuer or market orders
-         bool is_transfer_restricted()const { return options.flags & transfer_restricted; }
-         bool allow_confidential()const { return !(options.flags & asset_issuer_permission_flags::disable_confidential); }
-
          /// Helper function to get an asset object with the given amount in this asset's type
          asset amount(share_type a)const { return asset(a, id); }
          /// Convert a string amount (i.e. "123.45") to an asset object with this asset's type
@@ -84,18 +73,7 @@ namespace btcm { namespace chain {
          asset_options options;
 
 
-         /// Current supply, fee pool, and collected fees are stored in a separate object as they change frequently.
-
          asset_id_type get_id()const { return id; }
-
-
-         void validate()const
-         {
-            // UIAs may not be prediction markets, have force settlement, or global settlements
-            FC_ASSERT(!(options.flags & disable_force_settle || options.flags & global_settle));
-            FC_ASSERT(!(options.issuer_permissions & disable_force_settle || options.issuer_permissions & global_settle));
-         }
-
    };
 
    struct by_symbol;

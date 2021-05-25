@@ -41,6 +41,9 @@ bool _is_authorized_asset( const database& d, const account_object& acct, const 
 
 void asset_create_evaluator::do_apply( const asset_create_operation& op )
 { try {
+   if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
+      FC_ASSERT( !op.common_options.issuer_permissions && !op.common_options.flags, "No flags allowed!" );
+
    auto& asset_indx = db().get_index_type<asset_index>().indices().get<by_symbol>();
    auto asset_symbol_itr = asset_indx.find( op.symbol );
    FC_ASSERT( asset_symbol_itr == asset_indx.end(), "Asset with symbol ${s} already exist", ("s",op.symbol) );
@@ -116,9 +119,6 @@ void asset_update_evaluator::do_apply(const asset_update_operation& o)
    FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Asset with symbol id ${d} does not exist exist", ("d",o.asset_to_update) );
 
    auto a = *asset_symbol_itr;
-   auto a_copy = a; 
-   a_copy.options = o.new_options;
-   a_copy.validate();
 
    if( o.new_issuer )
    {

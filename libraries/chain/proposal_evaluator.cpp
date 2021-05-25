@@ -44,6 +44,11 @@ namespace impl {
          template<typename T>
          void operator()( const T& v )const { /* do nothing by default */ }
 
+         void operator()( const btcm::chain::asset_create_operation& op )const {
+            if( _db.has_hardfork( BTCM_HARDFORK_0_1 ) )
+               FC_ASSERT( !op.common_options.issuer_permissions && !op.common_options.flags, "No flags allowed!" );
+         }
+
          void operator()( const btcm::chain::proposal_create_operation& v )const {
             bool proposal_update_seen = false;
             for (const op_wrapper &op : v.proposed_ops)
