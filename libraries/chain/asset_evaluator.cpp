@@ -152,11 +152,13 @@ void asset_update_evaluator::do_apply(const asset_update_operation& o)
 { try {
    database& d = db();
 
-   auto& asset_indx = db().get_index_type<asset_index>().indices().get<by_id>();
+   FC_ASSERT( d.has_hardfork( BTCM_HARDFORK_0_1 ), "asset_update not allowed yet!" );
+
+   const auto& asset_indx = db().get_index_type<asset_index>().indices().get<by_id>();
    auto asset_symbol_itr = asset_indx.find( o.asset_to_update );
    FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Asset with symbol id ${d} does not exist exist", ("d",o.asset_to_update) );
 
-   auto a = *asset_symbol_itr;
+   const auto& a = *asset_symbol_itr;
 
    if( o.new_issuer )
    {
@@ -170,14 +172,23 @@ void asset_update_evaluator::do_apply(const asset_update_operation& o)
    FC_ASSERT(!((o.new_options.flags ^ a.options.flags) & ~a.options.issuer_permissions),
              "Flag change is forbidden by issuer permissions");
 
+   FC_ASSERT( (o.new_options.flags ^ a.options.flags) == allow_subasset_creation,
+              "Only allow_subasset_creation flag can be changed at this time!" );
    
-   FC_ASSERT( d.get_account(o.issuer).id == a.issuer, "", ("o.issuer", (d.get_account(o.issuer).id))("a.issuer", a.issuer) ) ;
+   if( (o.new_options.flags ^ a.options.flags) == allow_subasset_creation )
+   {
+      const auto& acct = d.get_nft_holder( a )( d );
+      FC_ASSERT( o.issuer == acct.name, "Only token holder can update allow_subasset_creation flag!" );
+   }
+   else
+      FC_ASSERT( d.get_account(o.issuer).id == a.issuer, "Only the asset issuer can update" );
 
 
    db().modify( *asset_symbol_itr, [&](asset_object& a) {
       if( o.new_issuer )
          a.issuer = d.get_account(*o.new_issuer).id;
-      a.options = o.new_options;
+      //a.options = o.new_options;
+      a.options.flags = o.new_options.flags;
    });
    return ;
 } FC_CAPTURE_AND_RETHROW((o)) }

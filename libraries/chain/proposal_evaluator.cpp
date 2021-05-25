@@ -71,6 +71,10 @@ namespace impl {
             }
          }
 
+         void operator()( const btcm::chain::asset_update_operation& v )const {
+            FC_ASSERT( _db.has_hardfork( BTCM_HARDFORK_0_1 ), "asset_update not allowed yet!" );
+         }
+
          void operator()( const btcm::chain::proposal_create_operation& v )const {
             bool proposal_update_seen = false;
             for (const op_wrapper &op : v.proposed_ops)
