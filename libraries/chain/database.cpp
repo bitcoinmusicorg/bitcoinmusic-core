@@ -2479,8 +2479,8 @@ void database::init_genesis( const genesis_state_type& initial_allocation )
                string issuer_name = asset.issuer_name;
                a.issuer = get_account_id(issuer_name);
                a.options.max_supply = asset.max_supply;
-               a.options.flags = disable_confidential;
-               a.options.issuer_permissions = UIA_ASSET_ISSUER_PERMISSION_MASK;
+               a.options.flags = 0;
+               a.options.issuer_permissions = 0;
          });
       }
       //initial balances
@@ -3411,6 +3411,15 @@ asset database::get_balance( const account_object& a, asset_id_type symbol )cons
    return itr->get_balance();
 }
 
+account_id_type database::get_nft_holder( const asset_object& asset )const
+{
+   FC_ASSERT( asset.precision == 0 && asset.options.max_supply == 1, "Not an NFT asset" );
+   const auto& index = get_index_type<account_balance_index>().indices().get<by_asset_balance>();
+   const auto itr = index.find( asset.id );
+   FC_ASSERT( itr != index.end() && itr->asset_type == asset.id, "Balance not found!" );
+   return itr->owner;
+}
+
 void database::init_hardforks()
 {
    _hardfork_times[ 0 ] = fc::time_point_sec( BTCM_GENESIS_TIME );
@@ -3493,6 +3502,10 @@ void database::apply_hardfork( uint32_t hardfork )
 
    switch( hardfork )
    {
+      case BTCM_HARDFORK_0_1:
+         for( const auto& asset : get_index_type<asset_index>().indices() )
+            modify( asset, [] (asset_object& a) { a.options.flags = a.options.issuer_permissions = 0; } );
+         break;
       default:
          break;
    }

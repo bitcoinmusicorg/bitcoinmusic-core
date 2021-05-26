@@ -41,6 +41,14 @@ bool _is_authorized_asset( const database& d, const account_object& acct, const 
 
 void asset_create_evaluator::do_apply( const asset_create_operation& op )
 { try {
+   if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
+   {
+      FC_ASSERT( !(op.common_options.issuer_permissions & ~ALLOWED_ASSET_PERMISSIONS),
+                 "Disallowed permissions detected!" );
+      FC_ASSERT( !(op.common_options.flags & ~ALLOWED_ASSET_PERMISSIONS),
+                 "Disallowed flags detected!" );
+   }
+
    auto& asset_indx = db().get_index_type<asset_index>().indices().get<by_symbol>();
    auto asset_symbol_itr = asset_indx.find( op.symbol );
    FC_ASSERT( asset_symbol_itr == asset_indx.end(), "Asset with symbol ${s} already exist", ("s",op.symbol) );
@@ -57,10 +65,43 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
    {
       auto prefix = op.symbol.substr( 0, dotpos );
       auto asset_symbol_itr = asset_indx.find( prefix );
-      FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Asset ${s} may only be created by issuer of ${p}, but ${p} has not been registered",
+      FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Sub-asset ${s} may only be created if ${p} exists",
                  ("s",op.symbol)("p",prefix) );
-      FC_ASSERT( asset_symbol_itr->issuer == issuer.id, "Asset ${s} may only be created by issuer of ${p}",
-                 ("s",op.symbol)("p",prefix) );
+      if( db().has_hardfork( BTCM_HARDFORK_0_1 ) && (asset_symbol_itr->options.flags & hashtag) )
+      {
+	 account_id_type holder = db().get_nft_holder( *asset_symbol_itr );
+	 if( asset_symbol_itr->options.flags & allow_subasset_creation )
+	 {
+            FC_ASSERT( op.fee.amount >= 2*BTCM_SUBASSET_CREATION_FEE, "Insufficient fee, need ${m}",
+		       ("m",2*BTCM_SUBASSET_CREATION_FEE) );
+	 }
+	 else
+            FC_ASSERT( holder == issuer.id, "Asset ${s} may only be created by holder of ${p}",
+                       ("s",op.symbol)("p",prefix) );
+      }
+      else
+         FC_ASSERT( asset_symbol_itr->issuer == issuer.id, "Asset ${s} may only be created by issuer of ${p}",
+                    ("s",op.symbol)("p",prefix) );
+   }
+
+   if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
+   {
+      if( (op.common_options.flags & hashtag) || (op.common_options.issuer_permissions & hashtag) )
+      {
+         FC_ASSERT( op.precision == 0 && op.common_options.max_supply == 1,
+                    "hashtag flag requires precision 0 and max_supply 1" );
+         FC_ASSERT( (op.common_options.flags & hashtag) || !(op.common_options.flags & allow_subasset_creation),
+                    "allow_subasset_creation flag requires hashtag" );
+         FC_ASSERT( (op.common_options.issuer_permissions & hashtag)
+                    || !(op.common_options.issuer_permissions & allow_subasset_creation),
+                    "allow_subasset_creation permission requires hashtag" );
+      }
+      else
+      {
+         FC_ASSERT( !(op.common_options.flags & allow_subasset_creation)
+                    && !(op.common_options.issuer_permissions & allow_subasset_creation),
+                    "allow_subasset_creation flag/permission requires hashtag" );
+      }
    }
 
    db().pay_fee( issuer, op.fee );
@@ -111,14 +152,13 @@ void asset_update_evaluator::do_apply(const asset_update_operation& o)
 { try {
    database& d = db();
 
-   auto& asset_indx = db().get_index_type<asset_index>().indices().get<by_id>();
+   FC_ASSERT( d.has_hardfork( BTCM_HARDFORK_0_1 ), "asset_update not allowed yet!" );
+
+   const auto& asset_indx = db().get_index_type<asset_index>().indices().get<by_id>();
    auto asset_symbol_itr = asset_indx.find( o.asset_to_update );
    FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Asset with symbol id ${d} does not exist exist", ("d",o.asset_to_update) );
 
-   auto a = *asset_symbol_itr;
-   auto a_copy = a; 
-   a_copy.options = o.new_options;
-   a_copy.validate();
+   const auto& a = *asset_symbol_itr;
 
    if( o.new_issuer )
    {
@@ -132,14 +172,23 @@ void asset_update_evaluator::do_apply(const asset_update_operation& o)
    FC_ASSERT(!((o.new_options.flags ^ a.options.flags) & ~a.options.issuer_permissions),
              "Flag change is forbidden by issuer permissions");
 
+   FC_ASSERT( (o.new_options.flags ^ a.options.flags) == allow_subasset_creation,
+              "Only allow_subasset_creation flag can be changed at this time!" );
    
-   FC_ASSERT( d.get_account(o.issuer).id == a.issuer, "", ("o.issuer", (d.get_account(o.issuer).id))("a.issuer", a.issuer) ) ;
+   if( (o.new_options.flags ^ a.options.flags) == allow_subasset_creation )
+   {
+      const auto& acct = d.get_nft_holder( a )( d );
+      FC_ASSERT( o.issuer == acct.name, "Only token holder can update allow_subasset_creation flag!" );
+   }
+   else
+      FC_ASSERT( d.get_account(o.issuer).id == a.issuer, "Only the asset issuer can update" );
 
 
    db().modify( *asset_symbol_itr, [&](asset_object& a) {
       if( o.new_issuer )
          a.issuer = d.get_account(*o.new_issuer).id;
-      a.options = o.new_options;
+      //a.options = o.new_options;
+      a.options.flags = o.new_options.flags;
    });
    return ;
 } FC_CAPTURE_AND_RETHROW((o)) }

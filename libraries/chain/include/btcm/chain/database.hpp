@@ -275,6 +275,8 @@ namespace btcm { namespace chain {
          asset       get_balance( const account_object& a, asset_id_type symbol )const;
          asset       get_balance( const string& aname, asset_id_type symbol )const { return get_balance( get_account(aname), symbol ); }
 
+         account_id_type get_nft_holder( const asset_object& asset )const;
+
          uint64_t    get_scoring(const account_object& ao ) const;
          uint64_t    get_scoring(const content_object& co ) const;
          void recalculate_score(const account_object& ao );
