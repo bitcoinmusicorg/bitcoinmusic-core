@@ -3503,6 +3503,7 @@ void database::apply_hardfork( uint32_t hardfork )
    switch( hardfork )
    {
       case BTCM_HARDFORK_0_1:
+         _treasury_account = &get_account( BTCM_TREASURY_ACCOUNT );
          for( const auto& asset : get_index_type<asset_index>().indices() )
             modify( asset, [] (asset_object& a) { a.options.flags = a.options.issuer_permissions = 0; } );
          break;

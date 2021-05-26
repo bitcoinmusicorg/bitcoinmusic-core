@@ -192,6 +192,8 @@
 #define BTCM_NULL_ACCOUNT                    "null"
 /// Represents the canonical account with WILDCARD authority (anybody can access funds in temp account)
 #define BTCM_TEMP_ACCOUNT                    "temp"
+/// Represents the canonical account to receive asset_create fees (from hardfork 0.1 on)
+#define BTCM_TREASURY_ACCOUNT                "treasury"
 /// Represents the canonical account for specifying you will vote for directly (as opposed to a proxy)
 #define BTCM_PROXY_TO_SELF_ACCOUNT           ""
 ///@}

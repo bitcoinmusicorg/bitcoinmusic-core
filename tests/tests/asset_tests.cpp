@@ -41,6 +41,10 @@ BOOST_AUTO_TEST_CASE(create_asset_test)
 
     fund( "federation", 5000000000 );
 
+    const auto& treasury = db.get_account( BTCM_TREASURY_ACCOUNT );
+    BOOST_CHECK_EQUAL( 0, treasury.balance.amount.value );
+    BOOST_CHECK_EQUAL( 0, treasury.mbd_balance.amount.value );
+
     set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
 
     trx.clear();
@@ -62,6 +66,8 @@ BOOST_AUTO_TEST_CASE(create_asset_test)
         PUSH_TX(db, trx);
         trx.clear();
     }
+    BOOST_CHECK_EQUAL( 0, treasury.balance.amount.value );
+    BOOST_CHECK_EQUAL( BTCM_ASSET_CREATION_FEE_0_1, treasury.mbd_balance.amount.value );
 
     const asset_object& bts = db.get_asset("BTS");
     BOOST_CHECK_EQUAL(0, bts.current_supply.value);
@@ -126,7 +132,7 @@ BOOST_FIXTURE_TEST_CASE( flags_test, database_fixture )
 { try {
     initialize_clean( 0 );
 
-    ACTORS((federation));
+    ACTORS((federation)(treasury));
     fund( "federation", 5000000000 );
 
     set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
@@ -456,7 +462,7 @@ BOOST_FIXTURE_TEST_CASE( create_hashtag_flag, database_fixture )
 { try {
    initialize_clean( 0 );
 
-   ACTORS( (federation) );
+   ACTORS( (federation)(treasury) );
    fund( "federation", 5000000000 );
    set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
    trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
@@ -496,6 +502,10 @@ BOOST_FIXTURE_TEST_CASE( create_hashtag_flag, database_fixture )
    db.set_hardfork( BTCM_HARDFORK_0_1, true );
 
    generate_block();
+
+   const auto& _treasury = db.get_account( BTCM_TREASURY_ACCOUNT );
+   BOOST_CHECK_EQUAL( 0, _treasury.balance.amount.value );
+   BOOST_CHECK_EQUAL( 0, _treasury.mbd_balance.amount.value );
 
    // verify flag has been cleared in hf
    const auto& pre = db.get_asset( "PREHF" );
@@ -563,6 +573,9 @@ BOOST_FIXTURE_TEST_CASE( create_hashtag_flag, database_fixture )
       sign(trx, federation_private_key);
       PUSH_TX(db, trx);
       trx.clear();
+
+      BOOST_CHECK_EQUAL( 0, _treasury.balance.amount.value );
+      BOOST_CHECK_EQUAL( BTCM_ASSET_CREATION_FEE_0_1, _treasury.mbd_balance.amount.value );
 
       // hashtag create proposal works
       pop.proposed_ops.clear();
@@ -744,7 +757,7 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
 { try {
    initialize_clean( 0 );
 
-   ACTORS( (alice)(bob)(federation) );
+   ACTORS( (alice)(bob)(federation)(treasury) );
    fund( "alice", 500000000 );
    fund( "bob", 500000000 );
    fund( "federation", 5000000000 );
@@ -818,6 +831,14 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
    db.set_hardfork( BTCM_HARDFORK_0_1, true );
 
    generate_block();
+   db.modify( db.get_dynamic_global_properties(), [] ( dynamic_global_property_object& p )
+   {
+      p.mbd_interest_rate = 0;
+   } );
+
+   const auto& _treasury = db.get_account( BTCM_TREASURY_ACCOUNT );
+   BOOST_CHECK_EQUAL( 0, _treasury.balance.amount.value );
+   BOOST_CHECK_EQUAL( 0, _treasury.mbd_balance.amount.value );
 
    {
       // create FASHION with hashtag flag and allow_subasset permission
@@ -843,6 +864,15 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
    }
 
    generate_block();
+
+   BOOST_CHECK_EQUAL( 0, _treasury.balance.amount.value );
+   BOOST_CHECK_EQUAL( 2*BTCM_ASSET_CREATION_FEE_0_1, _treasury.mbd_balance.amount.value );
+   const auto& _alice = db.get_account( "alice" );
+   BOOST_CHECK_EQUAL( 500000000, _alice.balance.amount.value );
+   BOOST_CHECK_EQUAL( 0, _alice.mbd_balance.amount.value );
+   const auto& _bob = db.get_account( "bob" );
+   BOOST_CHECK_EQUAL( 500000000, _bob.balance.amount.value );
+   BOOST_CHECK_EQUAL( 0, _bob.mbd_balance.amount.value );
 
    const auto& fashion = db.get_asset( "FASHION" );
    const auto& hash = db.get_asset( "HASH" );
@@ -870,12 +900,18 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
       PUSH_TX(db, trx);
       trx.clear();
 
+      BOOST_CHECK_EQUAL( 500000000 - 3*BTCM_ASSET_CREATION_FEE_0_1, _alice.balance.amount.value );
+      BOOST_CHECK_EQUAL( 3*BTCM_ASSET_CREATION_FEE_0_1, _alice.mbd_balance.amount.value );
+
       // convert some for asset_create fees
       cop.owner = "bob";
       trx.operations.emplace_back(cop);
       sign(trx, bob_private_key);
       PUSH_TX(db, trx);
       trx.clear();
+
+      BOOST_CHECK_EQUAL( 500000000 - 3*BTCM_ASSET_CREATION_FEE_0_1, _bob.balance.amount.value );
+      BOOST_CHECK_EQUAL( 3*BTCM_ASSET_CREATION_FEE_0_1, _bob.mbd_balance.amount.value );
 
       // issue FASHION and HASH to alice
       asset_issue_operation aio;
@@ -937,7 +973,7 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
       trx.clear();
 
       // bob still can't create subasset with normal fee
-      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.fee = asset(BTCM_SUBASSET_CREATION_FEE, XUSD_SYMBOL);
       aco.symbol = "FASHION.SHIRT";
       trx.operations.emplace_back(aco);
       sign(trx, bob_private_key);
@@ -945,13 +981,21 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
       trx.clear();
 
       // ...but with twice the normal fee it works
-      aco.fee = asset(2*BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.fee = asset(2*BTCM_SUBASSET_CREATION_FEE, XUSD_SYMBOL);
       aco.symbol = "FASHION.SHIRT";
       trx.operations.emplace_back(aco);
       sign(trx, bob_private_key);
       PUSH_TX(db, trx);
       trx.clear();
    }
+
+   BOOST_CHECK_EQUAL( 0, _treasury.balance.amount.value );
+   BOOST_CHECK_EQUAL( 2*BTCM_ASSET_CREATION_FEE_0_1 + BTCM_SUBASSET_CREATION_FEE,
+                      _treasury.mbd_balance.amount.value );
+   BOOST_CHECK_EQUAL( 500000000 - 3*BTCM_ASSET_CREATION_FEE_0_1, _alice.balance.amount.value );
+   BOOST_CHECK_EQUAL( 3*BTCM_ASSET_CREATION_FEE_0_1 + BTCM_SUBASSET_CREATION_FEE, _alice.mbd_balance.amount.value );
+   BOOST_CHECK_EQUAL( 500000000 - 3*BTCM_ASSET_CREATION_FEE_0_1, _bob.balance.amount.value );
+   BOOST_CHECK_EQUAL( 3*BTCM_ASSET_CREATION_FEE_0_1 - 2*BTCM_SUBASSET_CREATION_FEE, _bob.mbd_balance.amount.value );
 
 } FC_LOG_AND_RETHROW() }
 

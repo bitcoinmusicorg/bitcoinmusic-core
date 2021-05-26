@@ -59,6 +59,7 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
    asset min_fee = asset( is_sub ? BTCM_SUBASSET_CREATION_FEE
 		  		 : db().has_hardfork( BTCM_HARDFORK_0_1 ) ? BTCM_ASSET_CREATION_FEE_0_1
 								          : BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL );
+   asset treasury_fee = op.fee;
    FC_ASSERT( op.fee >= min_fee, "Insufficient fee, need ${m}", ("m",min_fee) );
    FC_ASSERT( db().get_balance( issuer, op.fee.asset_id ) >= op.fee, "Insufficient balance, can't pay fee!" );
 
@@ -76,6 +77,9 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
 	 {
             FC_ASSERT( op.fee.amount >= 2*BTCM_SUBASSET_CREATION_FEE, "Insufficient fee, need ${m}",
 		       ("m",2*BTCM_SUBASSET_CREATION_FEE) );
+            const asset holders_share = asset( treasury_fee.amount / 2, treasury_fee.asset_id );
+            db().adjust_balance( holder(db()), holders_share );
+            treasury_fee -= holders_share;
 	 }
 	 else
             FC_ASSERT( holder == issuer.id, "Asset ${s} may only be created by holder of ${p}",
@@ -106,7 +110,13 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
       }
    }
 
-   db().pay_fee( issuer, op.fee );
+   if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
+   {
+      db().adjust_balance( issuer, -op.fee );
+      db().adjust_balance( db().get_treasury_account(), treasury_fee );
+   }
+   else
+      db().pay_fee( issuer, op.fee );
    db().create<asset_object>( [&issuer,&op]( asset_object& a ) {
       a.issuer = issuer.id;
       a.symbol_string = op.symbol;

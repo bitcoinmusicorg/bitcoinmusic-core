@@ -77,7 +77,15 @@ void database_fixture::initialize_clean( uint32_t num_hardforks )
    }
 
    if( num_hardforks > 0 )
+   {
+      db.create<account_object>([this] (account_object& a) {
+         a.name = BTCM_TREASURY_ACCOUNT;
+         a.owner.weight_threshold = 1;
+         a.active.weight_threshold = 1;
+         a.active.add_authority( init_account_pub_key, a.active.weight_threshold );
+      });
       db.set_hardfork( num_hardforks );
+   }
    vest( BTCM_INIT_MINER_NAME, 10000 );
 
    // Fill up the rest of the required miners
