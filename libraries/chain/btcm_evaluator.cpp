@@ -83,7 +83,7 @@ void request_stream_reporting_evaluator::do_apply( const request_stream_reportin
    const auto srr = by_platforms_idx.find( boost::make_tuple( o.requestor, o.reporter ) );
    if( srr != by_platforms_idx.end() )
    {
-      FC_ASSERT( srr->reward_pct != o.reward_pct || o.redelegate_pct != prev_pct, "Entry already exists!" );
+      FC_ASSERT( srr->reward_pct != o.reward_pct.value || o.redelegate_pct.value != prev_pct, "Entry already exists!" );
       db().modify( *srr, [&o]( stream_report_request_object& s ) {
            s.reward_pct = o.reward_pct;
       });

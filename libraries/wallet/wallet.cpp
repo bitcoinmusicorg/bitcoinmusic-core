@@ -327,7 +327,7 @@ public:
 #endif
       result["build"] = os + " " + bitness;
 
-      return result;
+      return variant_object(std::move(result));
    }
 
    vector<proposal_object> get_proposed_transactions( string id )const
