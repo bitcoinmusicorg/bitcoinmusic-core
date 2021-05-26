@@ -49,10 +49,10 @@ BOOST_AUTO_TEST_CASE(create_asset_test)
     {
         convert_operation cop;
         cop.owner = "federation";
-        cop.amount = asset(BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+        cop.amount = asset(BTCM_ASSET_CREATION_FEE_0_1, BTCM_SYMBOL);
         trx.operations.emplace_back(std::move(cop));
         asset_create_operation aco;
-        aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+        aco.fee = asset(BTCM_ASSET_CREATION_FEE_0_1, XUSD_SYMBOL);
         aco.issuer = "federation";
         aco.symbol = "BTS";
         aco.precision = 5;
@@ -172,7 +172,7 @@ BOOST_FIXTURE_TEST_CASE( flags_test, database_fixture )
     {
 	// verify classic flags are no longer allowed
         asset_create_operation aco;
-        aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+        aco.fee = asset(BTCM_ASSET_CREATION_FEE_0_1, XUSD_SYMBOL);
         aco.issuer = "federation";
         aco.symbol = "BTS2";
         aco.precision = 5;
@@ -221,10 +221,10 @@ BOOST_AUTO_TEST_CASE(trade_asset_test)
     {
         convert_operation cop;
         cop.owner = "federation";
-        cop.amount = asset(BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+        cop.amount = asset(BTCM_ASSET_CREATION_FEE_0_1, BTCM_SYMBOL);
         trx.operations.emplace_back(std::move(cop));
         asset_create_operation aco;
-        aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+        aco.fee = asset(BTCM_ASSET_CREATION_FEE_0_1, XUSD_SYMBOL);
         aco.issuer = "federation";
         aco.symbol = "BTS";
         aco.precision = 5;
@@ -300,10 +300,10 @@ BOOST_AUTO_TEST_CASE(trade_assets_test)
     {
         convert_operation cop;
         cop.owner = "federation";
-        cop.amount = asset(2 * BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+        cop.amount = asset(2 * BTCM_ASSET_CREATION_FEE_0_1, BTCM_SYMBOL);
         trx.operations.emplace_back(std::move(cop));
         asset_create_operation aco;
-        aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+        aco.fee = asset(BTCM_ASSET_CREATION_FEE_0_1, XUSD_SYMBOL);
         aco.issuer = "federation";
         aco.symbol = "BTS";
         aco.precision = 5;
@@ -505,7 +505,7 @@ BOOST_FIXTURE_TEST_CASE( create_hashtag_flag, database_fixture )
    {
       // hashtag create fails with wrong precision / supply
       asset_create_operation aco;
-      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.fee = asset(BTCM_ASSET_CREATION_FEE_0_1, XUSD_SYMBOL);
       aco.issuer = "federation";
       aco.symbol = "HASH";
       aco.precision = 5;
@@ -588,8 +588,8 @@ BOOST_AUTO_TEST_CASE( create_subasset )
 { try {
 
    ACTORS( (alice)(bob)(federation) );
-   fund( "alice", 50000000 );
-   fund( "bob", 50000000 );
+   fund( "alice", 500000000 );
+   fund( "bob", 500000000 );
    fund( "federation", 5000000000 );
 
    set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
@@ -601,12 +601,12 @@ BOOST_AUTO_TEST_CASE( create_subasset )
       // convert some for create fees
       convert_operation cop;
       cop.owner = "federation";
-      cop.amount = asset(5 * BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+      cop.amount = asset(5 * BTCM_ASSET_CREATION_FEE_0_1, BTCM_SYMBOL);
 
       // create with hashtag flag
       trx.operations.emplace_back(std::move(cop));
       asset_create_operation aco;
-      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.fee = asset(BTCM_ASSET_CREATION_FEE_0_1, XUSD_SYMBOL);
       aco.issuer = "federation";
       aco.symbol = "FASHION";
       aco.precision = 0;
@@ -640,7 +640,7 @@ BOOST_AUTO_TEST_CASE( create_subasset )
 
       // convert some for create fees
       cop.owner = "alice";
-      cop.amount = asset(2 * BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+      cop.amount = asset(2 * BTCM_ASSET_CREATION_FEE_0_1, BTCM_SYMBOL);
       trx.operations.emplace_back(cop);
       sign(trx, alice_private_key);
       PUSH_TX(db, trx);
@@ -661,7 +661,7 @@ BOOST_AUTO_TEST_CASE( create_subasset )
    {
       // alice can't create subasset of FASHION
       asset_create_operation aco;
-      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.fee = asset(BTCM_ASSET_CREATION_FEE_0_1, XUSD_SYMBOL);
       aco.issuer = "alice";
       aco.symbol = "FASHION.SHIRT";
       aco.common_options.description = "Test sub";
@@ -745,8 +745,8 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
    initialize_clean( 0 );
 
    ACTORS( (alice)(bob)(federation) );
-   fund( "alice", 50000000 );
-   fund( "bob", 50000000 );
+   fund( "alice", 500000000 );
+   fund( "bob", 500000000 );
    fund( "federation", 5000000000 );
 
    set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
@@ -758,7 +758,7 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
       // convert some for asset create fee
       convert_operation cop;
       cop.owner = "federation";
-      cop.amount = asset(10 * BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+      cop.amount = asset(10 * BTCM_ASSET_CREATION_FEE_0_1, BTCM_SYMBOL);
       trx.operations.emplace_back(std::move(cop));
 
       // create PREHF asset with hashtag flag
@@ -822,7 +822,7 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
    {
       // create FASHION with hashtag flag and allow_subasset permission
       asset_create_operation aco;
-      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.fee = asset(BTCM_ASSET_CREATION_FEE_0_1, XUSD_SYMBOL);
       aco.issuer = "federation";
       aco.symbol = "FASHION";
       aco.precision = 0;
@@ -864,7 +864,7 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
       // convert some for asset_create fees
       convert_operation cop;
       cop.owner = "alice";
-      cop.amount = asset(3 * BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+      cop.amount = asset(3 * BTCM_ASSET_CREATION_FEE_0_1, BTCM_SYMBOL);
       trx.operations.emplace_back(cop);
       sign(trx, alice_private_key);
       PUSH_TX(db, trx);
@@ -895,7 +895,7 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
    {
       // bob can't create any subassets
       asset_create_operation aco;
-      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.fee = asset(2*BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
       aco.issuer = "bob";
       aco.symbol = "FASHION.SHIRT";
       aco.common_options.description = "Test sub";
@@ -937,6 +937,7 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
       trx.clear();
 
       // bob still can't create subasset with normal fee
+      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
       aco.symbol = "FASHION.SHIRT";
       trx.operations.emplace_back(aco);
       sign(trx, bob_private_key);

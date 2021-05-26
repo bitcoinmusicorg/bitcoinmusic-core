@@ -1106,6 +1106,8 @@ public:
                   create_op.fee = asset( 2*BTCM_SUBASSET_CREATION_FEE, XUSD_SYMBOL );
             }
          }
+	 else if( version >= BTCM_HARDFORK_0_1_VERSION )
+            create_op.fee = asset( BTCM_ASSET_CREATION_FEE_0_1, XUSD_SYMBOL );
          else
             create_op.fee = asset( BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL );
          create_op.issuer = issuer_account.name;

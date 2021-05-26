@@ -44,6 +44,7 @@
 #define BTCM_MAX_VOTED_STREAMING_PLATFORMS      10
 #define BTCM_MIN_STREAMING_PLATFORM_CREATION_FEE    (100000000 * 1000000LL)
 #define BTCM_ASSET_CREATION_FEE                     (10 * 1000000)
+#define BTCM_ASSET_CREATION_FEE_0_1                 (100 * 1000000)
 #define BTCM_SUBASSET_CREATION_FEE                  (10 * 1000000)
 
 #define BTCM_HARDFORK_REQUIRED_WITNESSES     17 // 17 of the 20 dpos witnesses (19 elected and 1 virtual time) required for hardfork. This guarantees 75% participation on all subsequent rounds.
