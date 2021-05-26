@@ -2749,6 +2749,8 @@ try {
          if( fho.price_history.size() ) {
             std::deque<price> copy = fho.price_history;
             std::sort( copy.begin(), copy.end() ); /// todo: use nth_item
+            fho.previous_actual_median = fho.actual_median_history;
+            fho.previous_effective_median = fho.effective_median_history;
             fho.effective_median_history = fho.actual_median_history = copy[copy.size()/2];
 
             // This block limits the effective median price to force XUSD to remain at or

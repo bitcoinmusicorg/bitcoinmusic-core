@@ -425,6 +425,12 @@ void database_fixture::set_price_feed( const price& new_price )
    generate_blocks( BTCM_BLOCKS_PER_HOUR );
    BOOST_REQUIRE( feed_history_id_type()( db ).actual_median_history == new_price );
    BOOST_REQUIRE( feed_history_id_type()( db ).effective_median_history == new_price );
+   if( feed_history_id_type()( db ).previous_actual_median == price() )
+   {
+      generate_blocks( BTCM_BLOCKS_PER_HOUR );
+      BOOST_REQUIRE( feed_history_id_type()( db ).previous_actual_median == new_price );
+      BOOST_REQUIRE( feed_history_id_type()( db ).previous_effective_median == new_price );
+   }
 }
 
 const asset& database_fixture::get_balance( const string& account_name )const

@@ -24,6 +24,7 @@
 #include <btcm/chain/base_evaluator.hpp>
 #include <btcm/chain/asset_object.hpp>
 #include <btcm/chain/account_object.hpp>
+#include <btcm/chain/base_objects.hpp>
 #include <btcm/chain/database.hpp>
 #include <btcm/chain/exceptions.hpp>
 #include <btcm/chain/hardfork.hpp>
@@ -59,6 +60,13 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
    asset min_fee = asset( is_sub ? BTCM_SUBASSET_CREATION_FEE
 		  		 : db().has_hardfork( BTCM_HARDFORK_0_1 ) ? BTCM_ASSET_CREATION_FEE_0_1
 								          : BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL );
+   if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
+   {
+      const auto& feed = db().get_feed_history();
+      asset prev_min = min_fee * feed.previous_actual_median;
+      asset curr_min = min_fee * feed.actual_median_history;
+      min_fee = std::min( prev_min, curr_min );
+   }
    asset treasury_fee = op.fee;
    FC_ASSERT( op.fee >= min_fee, "Insufficient fee, need ${m}", ("m",min_fee) );
    FC_ASSERT( db().get_balance( issuer, op.fee.asset_id ) >= op.fee, "Insufficient balance, can't pay fee!" );
@@ -75,8 +83,7 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
 	 account_id_type holder = db().get_nft_holder( *asset_symbol_itr );
 	 if( asset_symbol_itr->options.flags & allow_subasset_creation )
 	 {
-            FC_ASSERT( op.fee.amount >= 2*BTCM_SUBASSET_CREATION_FEE, "Insufficient fee, need ${m}",
-		       ("m",2*BTCM_SUBASSET_CREATION_FEE) );
+            FC_ASSERT( op.fee.amount >= 2*min_fee.amount, "Insufficient fee, need ${m}", ("m",min_fee+min_fee) );
             const asset holders_share = asset( treasury_fee.amount / 2, treasury_fee.asset_id );
             db().adjust_balance( holder(db()), holders_share );
             treasury_fee -= holders_share;
