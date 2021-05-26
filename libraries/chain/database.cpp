@@ -2344,19 +2344,19 @@ void database::init_genesis( const genesis_state_type& initial_allocation )
       // Create blockchain accounts
       public_key_type      init_public_key(BTCM_INIT_PUBLIC_KEY);
 
-      create<account_object>([this](account_object& a)
+      create<account_object>([](account_object& a)
       {
          a.name = BTCM_MINER_ACCOUNT;
          a.owner.weight_threshold = 1;
          a.active.weight_threshold = 1;
       } );
-      create<account_object>([this](account_object& a)
+      create<account_object>([](account_object& a)
       {
          a.name = BTCM_NULL_ACCOUNT;
          a.owner.weight_threshold = 1;
          a.active.weight_threshold = 1;
       } );
-      create<account_object>([this](account_object& a)
+      create<account_object>([](account_object& a)
       {
          a.name = BTCM_TEMP_ACCOUNT;
          a.owner.weight_threshold = 0;

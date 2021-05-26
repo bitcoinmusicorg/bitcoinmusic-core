@@ -1242,13 +1242,13 @@ BOOST_AUTO_TEST_CASE( proposals_with_mixed_authorities )
       cop.comp_meta.third_party_publishers = true;
       dist.payee = "penny";
       mgmt.voter = "marge";
-      cop.management_comp = std::move( vector<management_vote>() );
+      cop.management_comp = vector<management_vote>();
       cop.management_comp->push_back( mgmt );
       mgmt.voter = "monica";
       cop.management_comp->push_back( mgmt );
       cop.management_threshold_comp = 60;
       dist.payee = "penny";
-      cop.distributions_comp = std::move( vector<distribution>() );
+      cop.distributions_comp = vector<distribution>();
       cop.distributions_comp->push_back( dist );
       trx.operations.push_back( cop );
       sign( trx, uhura_private_key );
