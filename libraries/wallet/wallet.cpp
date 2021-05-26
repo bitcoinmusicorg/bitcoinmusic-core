@@ -1100,10 +1100,13 @@ public:
             create_op.fee = asset( BTCM_SUBASSET_CREATION_FEE, XUSD_SYMBOL );
             if( version >= BTCM_HARDFORK_0_1_VERSION )
             {
-               auto parent = find_asset( asset_name.substr( 0, dot ) );
-               FC_ASSERT( parent, "Parent asset not found!" );
-	       if( parent->options.flags & chain::allow_subasset_creation )
-                  create_op.fee = asset( 2*BTCM_SUBASSET_CREATION_FEE, XUSD_SYMBOL );
+	       if( asset_name.substr( 0, dot ) != "NFT" )
+	       {
+                  auto parent = find_asset( asset_name.substr( 0, dot ) );
+                  FC_ASSERT( parent, "Parent asset not found!" );
+	          if( parent->options.flags & chain::allow_subasset_creation )
+                     create_op.fee = asset( 2*BTCM_SUBASSET_CREATION_FEE, XUSD_SYMBOL );
+	       }
                create_op.fee = create_op.fee * feed;
             }
          }

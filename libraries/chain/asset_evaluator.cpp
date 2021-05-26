@@ -78,7 +78,9 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
       auto asset_symbol_itr = asset_indx.find( prefix );
       FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Sub-asset ${s} may only be created if ${p} exists",
                  ("s",op.symbol)("p",prefix) );
-      if( db().has_hardfork( BTCM_HARDFORK_0_1 ) && (asset_symbol_itr->options.flags & hashtag) )
+      if( db().has_hardfork( BTCM_HARDFORK_0_1 ) && prefix == "NFT" )
+         ; // anyone can create
+      else if( db().has_hardfork( BTCM_HARDFORK_0_1 ) && (asset_symbol_itr->options.flags & hashtag) )
       {
 	 account_id_type holder = db().get_nft_holder( *asset_symbol_itr );
 	 if( asset_symbol_itr->options.flags & allow_subasset_creation )

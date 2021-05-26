@@ -1013,4 +1013,76 @@ BOOST_AUTO_TEST_CASE( asset_create_fees )
 
 } FC_LOG_AND_RETHROW() }
 
+BOOST_FIXTURE_TEST_CASE( create_nft_sub, database_fixture )
+{ try {
+   initialize_clean( 0 );
+
+   ACTORS( (alice)(federation)(treasury) );
+   fund( "alice", 500000000 );
+   fund( "federation", 500000000 );
+
+   set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "2.000 2.28.2" ) ) );
+
+   trx.clear();
+   trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
+
+   {
+      // convert some for asset create fee
+      convert_operation cop;
+      cop.owner = "federation";
+      cop.amount = asset(BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+      trx.operations.emplace_back(std::move(cop));
+
+      // create NFT
+      asset_create_operation aco;
+      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.issuer = "federation";
+      aco.symbol = "NFT";
+      aco.common_options.description = "NFT main";
+      trx.operations.emplace_back(aco);
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+   }
+
+   generate_block();
+
+   {
+      // convert some for asset create fee
+      convert_operation cop;
+      cop.owner = "alice";
+      cop.amount = asset(BTCM_SUBASSET_CREATION_FEE, BTCM_SYMBOL);
+      trx.operations.emplace_back(std::move(cop));
+
+      // alice can't create NFT subasset
+      asset_create_operation aco;
+      aco.fee = asset(BTCM_SUBASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.issuer = "alice";
+      aco.symbol = "NFT.SHIRT";
+      aco.common_options.description = "NFT sub";
+      trx.operations.emplace_back(aco);
+      sign(trx, alice_private_key);
+      BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+      trx.clear();
+   }
+
+   generate_block();
+   db.set_hardfork( BTCM_HARDFORK_0_1, true );
+   generate_block();
+
+   {
+      // now she can
+      asset_create_operation aco;
+      aco.fee = asset(BTCM_SUBASSET_CREATION_FEE, BTCM_SYMBOL);
+      aco.issuer = "alice";
+      aco.symbol = "NFT.SHIRT";
+      aco.common_options.description = "NFT sub";
+      trx.operations.emplace_back(aco);
+      sign(trx, alice_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+   }
+
+} FC_LOG_AND_RETHROW() }
+
 BOOST_AUTO_TEST_SUITE_END()
