@@ -356,12 +356,8 @@ BOOST_AUTO_TEST_CASE( api_test )
    convert( "bob", ASSET( "1000.0 2.28.0" ) );
 
    {
-      convert_operation cop;
-      cop.owner = "federation";
-      cop.amount = asset( 100 * BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL );
-      trx.operations.emplace_back(std::move(cop));
       asset_create_operation aco;
-      aco.fee = asset( 10 * BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL );
+      aco.fee = asset( BTCM_ASSET_CREATION_FEE_0_1, BTCM_SYMBOL );
       aco.issuer = "federation";
       aco.symbol = "BTS";
       aco.precision = 5;

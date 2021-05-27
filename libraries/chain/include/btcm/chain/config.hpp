@@ -44,6 +44,7 @@
 #define BTCM_MAX_VOTED_STREAMING_PLATFORMS      10
 #define BTCM_MIN_STREAMING_PLATFORM_CREATION_FEE    (100000000 * 1000000LL)
 #define BTCM_ASSET_CREATION_FEE                     (10 * 1000000)
+#define BTCM_ASSET_CREATION_FEE_0_1                 (100 * 1000000)
 #define BTCM_SUBASSET_CREATION_FEE                  (10 * 1000000)
 
 #define BTCM_HARDFORK_REQUIRED_WITNESSES     17 // 17 of the 20 dpos witnesses (19 elected and 1 virtual time) required for hardfork. This guarantees 75% participation on all subsequent rounds.
@@ -191,6 +192,8 @@
 #define BTCM_NULL_ACCOUNT                    "null"
 /// Represents the canonical account with WILDCARD authority (anybody can access funds in temp account)
 #define BTCM_TEMP_ACCOUNT                    "temp"
+/// Represents the canonical account to receive asset_create fees (from hardfork 0.1 on)
+#define BTCM_TREASURY_ACCOUNT                "treasury"
 /// Represents the canonical account for specifying you will vote for directly (as opposed to a proxy)
 #define BTCM_PROXY_TO_SELF_ACCOUNT           ""
 ///@}

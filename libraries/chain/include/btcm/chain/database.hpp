@@ -396,6 +396,8 @@ namespace btcm { namespace chain {
           * @}
           */
 
+         const account_object& get_treasury_account()const { return *_treasury_account; }
+
    protected:
          //Mark pop_undo() as protected -- we do not want outside calling pop_undo(); it should call pop_block() instead
          void pop_undo() { object_database::pop_undo(); }
@@ -483,5 +485,8 @@ namespace btcm { namespace chain {
 
          // Counts nested proposal updates
          uint32_t                          _push_proposal_nesting_depth = 0;
+
+         // after hardfork_0_1
+         const account_object* _treasury_account;
    };
 } }
