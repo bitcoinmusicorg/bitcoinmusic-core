@@ -1214,7 +1214,7 @@ void database::update_witness_schedule4()
    {
       witnesses_on_version += ver_itr->second;
 
-      if( witnesses_on_version >= BTCM_HARDFORK_REQUIRED_WITNESSES )
+      if( witnesses_on_version >= 2 * wso.current_shuffled_witnesses.size() / 3 + 1 )
       {
          majority_version = ver_itr->first;
          break;
@@ -1227,7 +1227,7 @@ void database::update_witness_schedule4()
 
    while( hf_itr != hardfork_version_votes.end() )
    {
-      if( hf_itr->second >= BTCM_HARDFORK_REQUIRED_WITNESSES )
+      if( hf_itr->second >= 2 * wso.current_shuffled_witnesses.size() / 3 + 1 )
       {
          modify( hardfork_property_id_type()( *this ), [&]( hardfork_property_object& hpo )
          {
