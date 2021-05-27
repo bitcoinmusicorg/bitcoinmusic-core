@@ -30,6 +30,9 @@
 
 #include "../common/database_fixture.hpp"
 
+// testnet only
+#define FEE_ASSET_SWITCH_TIME (fc::time_point_sec(1614502800))
+
 using namespace btcm::chain;
 using namespace graphene::db;
 
@@ -38,6 +41,8 @@ BOOST_FIXTURE_TEST_SUITE(asset_tests, clean_database_fixture)
 BOOST_AUTO_TEST_CASE(create_asset_test)
 { try {
     ACTORS((bob)(federation));
+
+    generate_blocks(FEE_ASSET_SWITCH_TIME + fc::minutes(1));
 
     fund( "federation", 5000000000 );
 
@@ -201,6 +206,8 @@ BOOST_AUTO_TEST_CASE(trade_asset_test)
     fund("bob");
     fund( "federation", 5000000000 );
     
+    generate_blocks(FEE_ASSET_SWITCH_TIME + fc::minutes(1));
+
     set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
 
     // give bob some fake XUSD
@@ -286,6 +293,8 @@ BOOST_AUTO_TEST_CASE(trade_assets_test)
     fund("bob", 5000000);
     vest("bob", 50000);
     fund( "federation", 5000000000 );
+
+    generate_blocks(FEE_ASSET_SWITCH_TIME + fc::minutes(1));
 
     set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "1.000 2.28.2" ) ) );
 

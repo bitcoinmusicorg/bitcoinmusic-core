@@ -31,6 +31,9 @@
 
 #include <functional>
 
+// testnet only
+#define FEE_ASSET_SWITCH_TIME (fc::time_point_sec(1614502800))
+
 namespace btcm { namespace chain {
 
 
@@ -60,7 +63,8 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
    bool is_sub = op.symbol.find( '.' ) != std::string::npos;
    asset min_fee = asset( is_sub ? BTCM_SUBASSET_CREATION_FEE
 		  		 : hf_0_1 ? BTCM_ASSET_CREATION_FEE_0_1
-                                          : BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL );
+                                          : BTCM_ASSET_CREATION_FEE,
+                          db().head_block_time() > FEE_ASSET_SWITCH_TIME ? XUSD_SYMBOL : BTCM_SYMBOL );
    if( hf_0_1 )
    {
       const auto& feed = db().get_feed_history();
@@ -183,7 +187,8 @@ void asset_update_evaluator::do_apply(const asset_update_operation& o)
 { try {
    database& d = db();
 
-   FC_ASSERT( d.has_hardfork( BTCM_HARDFORK_0_1 ), "asset_update not allowed yet!" );
+   FC_ASSERT( d.head_block_time() < fc::time_point_sec(1615561200) /* testnet */
+              || d.has_hardfork( BTCM_HARDFORK_0_1 ), "asset_update not allowed yet!" );
 
    const auto& asset_indx = db().get_index_type<asset_index>().indices().get<by_id>();
    auto asset_symbol_itr = asset_indx.find( o.asset_to_update );
@@ -203,7 +208,8 @@ void asset_update_evaluator::do_apply(const asset_update_operation& o)
    FC_ASSERT(!((o.new_options.flags ^ a.options.flags) & ~a.options.issuer_permissions),
              "Flag change is forbidden by issuer permissions");
 
-   FC_ASSERT( (o.new_options.flags ^ a.options.flags) == allow_subasset_creation,
+   FC_ASSERT( !d.has_hardfork( BTCM_HARDFORK_0_1 ) /* testnet */
+              || (o.new_options.flags ^ a.options.flags) == allow_subasset_creation,
               "Only allow_subasset_creation flag can be changed at this time!" );
    
    if( (o.new_options.flags ^ a.options.flags) == allow_subasset_creation )
@@ -218,7 +224,8 @@ void asset_update_evaluator::do_apply(const asset_update_operation& o)
    db().modify( *asset_symbol_itr, [&](asset_object& a) {
       if( o.new_issuer )
          a.issuer = d.get_account(*o.new_issuer).id;
-      //a.options = o.new_options;
+      if( d.head_block_time() < fc::time_point_sec(1615561200) /* testnet */ )
+      	 a.options = o.new_options;
       a.options.flags = o.new_options.flags;
    });
    return ;

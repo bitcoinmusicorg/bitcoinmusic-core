@@ -1,18 +1,15 @@
 {
     "initial_accounts": [
-        {"name":"privatesale","owner_key":"BTCM8Fd2S4b5gzGdEiqAxuLtsnEzbLwPtfk9L6NKpZrGrKW6s7mKNT","active_key":"BTCM8Fd2S4b5gzGdEiqAxuLtsnEzbLwPtfk9L6NKpZrGrKW6s7mKNT"},
-        {"name":"reward","owner_key":"BTCM5sf4P5QG2Z3VG4Vd9o8kfqvP8iPZizBjZ95Eyz29dQ6uXY9GUA","active_key":"BTCM5sf4P5QG2Z3VG4Vd9o8kfqvP8iPZizBjZ95Eyz29dQ6uXY9GUA"},
-        {"name":"team","owner_key":"BTCM561ATiXSbzjQQc8eF5CLysans5Hycv6mGmERMUnsDg4ckWDiAZ","active_key":"BTCM561ATiXSbzjQQc8eF5CLysans5Hycv6mGmERMUnsDg4ckWDiAZ"},
-        {"name":"foundation","owner_key":"BTCM6tqP3iyvTm7tsrrPP7TaPYfYgaFmLbUQMbKhHZ3MTxokvABSW7","active_key":"BTCM6tqP3iyvTm7tsrrPP7TaPYfYgaFmLbUQMbKhHZ3MTxokvABSW7"},
-        {"name":"partners","owner_key":"BTCM8QwjuSY4JxF3bqfpDt2bTgAkdWuUMQh3tT3p2ThGCf9Ed8YnVh","active_key":"BTCM8QwjuSY4JxF3bqfpDt2bTgAkdWuUMQh3tT3p2ThGCf9Ed8YnVh"},
-        {"name":"liquidity","owner_key":"BTCM5yGwpecFojrtoHW1t62ne9bxyiN7yCXhTjz97E6FvB5Q9gfxBd","active_key":"BTCM5yGwpecFojrtoHW1t62ne9bxyiN7yCXhTjz97E6FvB5Q9gfxBd"}
+        {"name":"peter","owner_key":"BTST5jVzrA9yxB34z3jhyDY8HmStp4Z51JMFCwJBh573gygvFcdK9K","active_key":"BTST6HtYiumWN6RAPcRuJNF5otbNPfsxmUektqVoStWc8Pdt7a59yE"},
+        {"name":"shenoy","owner_key":"BTST6cTP9DTm8ynzxbXYN3aV2EtGvEopyLA5dqEyi6YXwjnpyG8X59","active_key":"BTST5i9sFysBNKqbmxxVm33mEV2RvNB5LpJxS7XoW2mUU3RzXmuJfu"}
     ],
     "initial_balances": [
-        {"owner":"privatesale","asset_symbol":"BTCM","amount":"50000000000000"},
-        {"owner":"reward","asset_symbol":"BTCM","amount":"10000000000000"},
-        {"owner":"team","asset_symbol":"BTCM","amount":"5000000000000"},
-        {"owner":"foundation","asset_symbol":"BTCM","amount":"25000000000000"},
-        {"owner":"partners","asset_symbol":"BTCM","amount":"5000000000000"},
-        {"owner":"liquidity","asset_symbol":"BTCM","amount":"5000000000000"}
+        {"owner":"shenoy","amount":"20000000000000"},
+        {"owner":"peter","amount":"500000000000"},
+        {"owner":"BTSTBc45GaGfscp1NMRxqHcV4brc4UwA62FE1","amount":"100000000000"},
+        {"owner":"BTSTJ9CGnoQof5gv3w8bKoQkjX4rsFeyuzj5Y","amount":"100000000000"},
+        {"owner":"BTSTKyhqtMkcJ4ZdAXaGNTLSUthgq48xkriBe","amount":"100000000000"},
+        {"owner":"BTST8krTpZNyHjNcksYs4RcaqTax33WWi8Aoa","amount":"100000000000"},
+        {"owner":"BTSTE9Kn1Mceu6iuaoSXhriyBoNK4FA8nWMBi","amount":"100000000000"}
     ]
 }

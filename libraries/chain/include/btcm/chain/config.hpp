@@ -7,17 +7,17 @@
 #define BTCM_BLOCKCHAIN_VERSION              ( version(0, 1, 0) )
 #define BTCM_BLOCKCHAIN_HARDFORK_VERSION     ( hardfork_version( BTCM_BLOCKCHAIN_VERSION ) )
 
-#define BTCM_INIT_PUBLIC_KEY_STR             "BTCM7kcBTQqFo8Lb7nttdjAY4hveRWM2yNk4FDjvECubdaPPjUCiLZ"
-#define BTCM_CHAIN_ID                        (fc::sha256::hash("BitcoinMusic main chain"))
-#define BASE_SYMBOL                          "BTCM"
-#define BTCM_ADDRESS_PREFIX                  "BTCM"
+#define BTCM_INIT_PUBLIC_KEY_STR             "BTST8PNkdK4evQCT5HFfsLjbrpPVgHLgeFoTY5GgBVEJgAwKWWEBWo"
+#define BTCM_CHAIN_ID                        (fc::sha256::hash("BitcoinMusic TEST chain"))
+#define BASE_SYMBOL                          "BTST"
+#define BTCM_ADDRESS_PREFIX                  "BTST"
 #define BTCM_SYMBOL_STRING   (BASE_SYMBOL)
 #define VESTS_SYMBOL_STRING   "VESTS"
 #define XUSD_SYMBOL_STRING     "XUSD"
 
 #define NULL_SYMBOL  (uint64_t(3) )
 
-#define BTCM_GENESIS_TIME                    (fc::time_point_sec(1585422000)) // 2020-03-28T20:00Z
+#define BTCM_GENESIS_TIME                    (fc::time_point_sec(1613721600))
 #define BTCM_VOTE_CHANGE_LOCKOUT_PERIOD      (60*60*2) /// 2 hours
 
 #define BTCM_MIN_ACCOUNT_CREATION_FEE           1

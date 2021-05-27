@@ -5,11 +5,6 @@ FROM phusion/baseimage:0.10.1 AS build
 ENV DATADIR "/data"
 ENV LANG=en_US.UTF-8
 
-# Make Ports Available
-EXPOSE 1027
-EXPOSE 1028
-EXPOSE 1029
-
 RUN mkdir -p "${DATADIR}" /usr/local/bin
 
 # EntryPoint for Config
@@ -88,9 +83,9 @@ ENV DATADIR "/data"
 ENV LANG=en_US.UTF-8
 
 # Make Ports Available
-EXPOSE 1027
-EXPOSE 1028
-EXPOSE 1029
+EXPOSE 33027
+EXPOSE 33028
+EXPOSE 33029
 
 RUN mkdir -p "${DATADIR}" /usr/local/bin /etc/BTCM
 

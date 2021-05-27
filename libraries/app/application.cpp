@@ -96,7 +96,7 @@ namespace detail {
             seeds = _options->at("seed-node").as<vector<string>>();
          else
          {
-             seeds.push_back("btcm.seeds.quisquis.de:1027"); // pc's DNS seeder
+             seeds.push_back("btcm-test.seeds.quisquis.de:33027"); // pc's DNS seeder
          }
          std::set<fc::ip::endpoint> seen;
          for( const string& endpoint_string : seeds )
@@ -847,8 +847,8 @@ void application::set_program_options(boost::program_options::options_descriptio
          ("p2p-max-connections", bpo::value<uint32_t>(), "Maxmimum number of incoming connections on P2P endpoint")
          ("seed-node,s", bpo::value<vector<string>>()->composing(), "P2P nodes to connect to on startup (may specify multiple times)")
          ("checkpoint,c", checkpoint_option, "Pairs of [BLOCK_NUM,BLOCK_ID] that should be enforced as checkpoints.")
-         ("rpc-endpoint", bpo::value<string>()->implicit_value("127.0.0.1:1028"), "Endpoint for websocket RPC to listen on")
-         ("rpc-tls-endpoint", bpo::value<string>()->implicit_value("127.0.0.1:1029"), "Endpoint for TLS websocket RPC to listen on")
+         ("rpc-endpoint", bpo::value<string>()->implicit_value("127.0.0.1:33028"), "Endpoint for websocket RPC to listen on")
+         ("rpc-tls-endpoint", bpo::value<string>()->implicit_value("127.0.0.1:33029"), "Endpoint for TLS websocket RPC to listen on")
          ("server-pem,p", bpo::value<string>()->implicit_value("server.pem"), "The TLS certificate file for this server")
          ("server-pem-password,P", bpo::value<string>()->implicit_value(""), "Password for this certificate")
          ("dbg-init-key", bpo::value<string>(), "Block signing key to use for init witnesses, overrides genesis file")

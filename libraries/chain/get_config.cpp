@@ -10,7 +10,7 @@ fc::variant_object get_config()
 {
    fc::mutable_variant_object result;
 
-   result[ "IS_TEST_NET" ] = false;
+   result[ "IS_TEST_NET" ] = true;
 
    result["GRAPHENE_CURRENT_DB_VERSION"] = GRAPHENE_CURRENT_DB_VERSION;
    result["XUSD_SYMBOL"] = XUSD_SYMBOL;
