@@ -47,7 +47,6 @@
 #define BTCM_ASSET_CREATION_FEE_0_1                 (100 * 1000000)
 #define BTCM_SUBASSET_CREATION_FEE                  (10 * 1000000)
 
-#define BTCM_HARDFORK_REQUIRED_WITNESSES     17 // 17 of the 20 dpos witnesses (19 elected and 1 virtual time) required for hardfork. This guarantees 75% participation on all subsequent rounds.
 #define BTCM_MAX_TIME_UNTIL_EXPIRATION       (60*60) // seconds,  aka: 1 hour
 #define BTCM_MAX_MEMO_SIZE                   2048
 #define BTCM_MAX_PROXY_RECURSION_DEPTH       4

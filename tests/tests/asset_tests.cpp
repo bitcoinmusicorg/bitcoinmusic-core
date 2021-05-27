@@ -66,12 +66,26 @@ BOOST_AUTO_TEST_CASE(create_asset_test)
     BOOST_CHECK_EQUAL( 0, treasury.mbd_balance.amount.value );
 
     const asset_object& bts = db.get_asset("BTS");
-    BOOST_CHECK_EQUAL(0, bts.current_supply.value);
+    BOOST_CHECK_EQUAL(bts.options.max_supply.value, bts.current_supply.value);
     BOOST_CHECK_EQUAL("BTS", bts.symbol_string);
     BOOST_CHECK_EQUAL(5, bts.precision);
     BOOST_CHECK(federation_id == bts.issuer);
 
     {
+        asset_reserve_operation aro;
+        aro.payer = "federation";
+        aro.amount_to_reserve = bts.amount(bts.options.max_supply - 150);
+        trx.operations.emplace_back(std::move(aro));
+
+        transfer_operation to;
+        to.from = "federation";
+        to.to = "bob";
+        to.amount = bts.amount(50);
+        trx.operations.emplace_back(std::move(to));
+        sign(trx, federation_private_key);
+        PUSH_TX(db, trx);
+        trx.clear();
+
         asset_issue_operation aio;
         aio.issuer = "bob";
         aio.asset_to_issue = bts.amount(5000);
@@ -79,22 +93,6 @@ BOOST_AUTO_TEST_CASE(create_asset_test)
         trx.operations.emplace_back(std::move(aio));
         sign(trx, bob_private_key);
         BOOST_CHECK_THROW(PUSH_TX(db, trx), fc::assert_exception);
-        trx.clear();
-
-        aio.issuer = "federation";
-        aio.asset_to_issue = bts.amount(100);
-        aio.issue_to_account = "federation";
-        trx.operations.emplace_back(std::move(aio));
-        sign(trx, federation_private_key);
-        PUSH_TX(db, trx);
-        trx.clear();
-
-        aio.issuer = "federation";
-        aio.asset_to_issue = bts.amount(50);
-        aio.issue_to_account = "bob";
-        trx.operations.emplace_back(std::move(aio));
-        sign(trx, federation_private_key);
-        PUSH_TX(db, trx);
         trx.clear();
     }
 
@@ -235,11 +233,10 @@ BOOST_AUTO_TEST_CASE(trade_asset_test)
 
     const asset_object& bts = db.get_asset("BTS");
     {
-        asset_issue_operation aio;
-        aio.issuer = "federation";
-        aio.asset_to_issue = bts.amount(500000);
-        aio.issue_to_account = "federation";
-        trx.operations.emplace_back(std::move(aio));
+        asset_reserve_operation aro;
+        aro.payer = "federation";
+        aro.amount_to_reserve = bts.amount(bts.options.max_supply - 500000);
+        trx.operations.emplace_back(std::move(aro));
         sign(trx, federation_private_key);
         PUSH_TX(db, trx);
         trx.clear();
@@ -316,14 +313,20 @@ BOOST_AUTO_TEST_CASE(trade_assets_test)
     const asset_object& btc = db.get_asset("BTC");
 
     {
-        asset_issue_operation aio;
-        aio.issuer = "federation";
-        aio.asset_to_issue = bts.amount(5000000);
-        aio.issue_to_account = "bob";
-        trx.operations.emplace_back(aio);
-        aio.asset_to_issue = btc.amount(500000);
-        aio.issue_to_account = "alice";
-        trx.operations.emplace_back(std::move(aio));
+        asset_reserve_operation aro;
+        aro.payer = "federation";
+        aro.amount_to_reserve = bts.amount(bts.options.max_supply - 5500000);
+        trx.operations.emplace_back(std::move(aro));
+
+        transfer_operation to;
+        to.from = "federation";
+        to.to = "bob";
+        to.amount = bts.amount(5000000);
+        trx.operations.emplace_back(to);
+
+        to.to = "alice";
+        to.amount = btc.amount(500000);
+        trx.operations.emplace_back(to);
         sign(trx, federation_private_key);
         PUSH_TX(db, trx);
         trx.clear();
@@ -622,16 +625,6 @@ BOOST_AUTO_TEST_CASE( create_subasset )
       sign(trx, federation_private_key);
       PUSH_TX(db, trx);
       trx.clear();
-
-      // issue hashtag supply to federation
-      asset_issue_operation aio;
-      aio.issuer = "federation";
-      aio.issue_to_account = "federation";
-      aio.asset_to_issue = asset( 1, db.get_asset( "FASHION" ).id );
-      trx.operations.emplace_back(std::move(aio));
-      sign(trx, federation_private_key);
-      PUSH_TX(db, trx);
-      trx.clear();
    }
 
    generate_block();
@@ -859,13 +852,14 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
       trx.clear();
 
       // issue FASHION and HASH to alice
-      asset_issue_operation aio;
-      aio.issuer = "federation";
-      aio.issue_to_account = "alice";
-      aio.asset_to_issue = asset( 1, db.get_asset( "FASHION" ).id );
-      trx.operations.emplace_back(aio);
-      aio.asset_to_issue = asset( 1, db.get_asset( "HASH" ).id );
-      trx.operations.emplace_back(aio);
+      transfer_operation to;
+      to.from = "federation";
+      to.to = "alice";
+      to.amount = asset( 1, db.get_asset( "FASHION" ).id );
+      trx.operations.emplace_back(to);
+
+      to.amount = asset( 1, db.get_asset( "HASH" ).id );
+      trx.operations.emplace_back(to);
       sign(trx, federation_private_key);
       PUSH_TX(db, trx);
       trx.clear();
@@ -1007,6 +1001,78 @@ BOOST_AUTO_TEST_CASE( asset_create_fees )
       aco.fee = asset(BTCM_SUBASSET_CREATION_FEE, BTCM_SYMBOL);
       trx.operations.emplace_back(aco);
       sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+   }
+
+} FC_LOG_AND_RETHROW() }
+
+BOOST_FIXTURE_TEST_CASE( create_nft_sub, database_fixture )
+{ try {
+   initialize_clean( 0 );
+
+   ACTORS( (alice)(federation)(treasury) );
+   fund( "alice", 500000000 );
+   fund( "federation", 500000000 );
+
+   set_price_feed( price( ASSET( "1.000 2.28.0" ), ASSET( "2.000 2.28.2" ) ) );
+
+   trx.clear();
+   trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
+
+   {
+      // convert some for asset create fee
+      convert_operation cop;
+      cop.owner = "federation";
+      cop.amount = asset(BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
+      trx.operations.emplace_back(std::move(cop));
+
+      // create NFT
+      asset_create_operation aco;
+      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.issuer = "federation";
+      aco.symbol = "NFT";
+      aco.common_options.description = "NFT main";
+      trx.operations.emplace_back(aco);
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+   }
+
+   generate_block();
+
+   {
+      // convert some for asset create fee
+      convert_operation cop;
+      cop.owner = "alice";
+      cop.amount = asset(BTCM_SUBASSET_CREATION_FEE, BTCM_SYMBOL);
+      trx.operations.emplace_back(std::move(cop));
+
+      // alice can't create NFT subasset
+      asset_create_operation aco;
+      aco.fee = asset(BTCM_SUBASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.issuer = "alice";
+      aco.symbol = "NFT.SHIRT";
+      aco.common_options.description = "NFT sub";
+      trx.operations.emplace_back(aco);
+      sign(trx, alice_private_key);
+      BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
+      trx.clear();
+   }
+
+   generate_block();
+   db.set_hardfork( BTCM_HARDFORK_0_1, true );
+   generate_block();
+
+   {
+      // now she can
+      asset_create_operation aco;
+      aco.fee = asset(BTCM_SUBASSET_CREATION_FEE, BTCM_SYMBOL);
+      aco.issuer = "alice";
+      aco.symbol = "NFT.SHIRT";
+      aco.common_options.description = "NFT sub";
+      trx.operations.emplace_back(aco);
+      sign(trx, alice_private_key);
       PUSH_TX(db, trx);
       trx.clear();
    }

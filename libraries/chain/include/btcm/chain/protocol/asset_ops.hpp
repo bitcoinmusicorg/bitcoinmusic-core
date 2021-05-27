@@ -153,14 +153,12 @@ namespace btcm { namespace chain {
     */
    struct asset_reserve_operation : public base_operation
    {
-
-      string            issuer;
       string            payer;
       asset             amount_to_reserve;
       extensions_type   extensions;
 
       void              validate()const;
-      void get_required_active_authorities(  flat_set<string>& a )const{ a.insert(issuer); }
+      void get_required_active_authorities(  flat_set<string>& a )const{ a.insert(payer); }
    };
 
 } } // btcm::chain
@@ -195,5 +193,5 @@ FC_REFLECT( btcm::chain::asset_update_operation,
 FC_REFLECT( btcm::chain::asset_issue_operation,
             (issuer)(asset_to_issue)(issue_to_account)(extensions) )
 FC_REFLECT( btcm::chain::asset_reserve_operation,
-            (issuer)(payer)(amount_to_reserve)(extensions) )
+            (payer)(amount_to_reserve)(extensions) )
 

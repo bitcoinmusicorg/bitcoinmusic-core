@@ -42,7 +42,8 @@ bool _is_authorized_asset( const database& d, const account_object& acct, const 
 
 void asset_create_evaluator::do_apply( const asset_create_operation& op )
 { try {
-   if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
+   const bool hf_0_1 = db().has_hardfork( BTCM_HARDFORK_0_1 );
+   if( hf_0_1 )
    {
       FC_ASSERT( !(op.common_options.issuer_permissions & ~ALLOWED_ASSET_PERMISSIONS),
                  "Disallowed permissions detected!" );
@@ -58,9 +59,9 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
 
    bool is_sub = op.symbol.find( '.' ) != std::string::npos;
    asset min_fee = asset( is_sub ? BTCM_SUBASSET_CREATION_FEE
-		  		 : db().has_hardfork( BTCM_HARDFORK_0_1 ) ? BTCM_ASSET_CREATION_FEE_0_1
-								          : BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL );
-   if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
+		  		 : hf_0_1 ? BTCM_ASSET_CREATION_FEE_0_1
+                                          : BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL );
+   if( hf_0_1 )
    {
       const auto& feed = db().get_feed_history();
       asset prev_min = min_fee * feed.previous_actual_median;
@@ -78,7 +79,9 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
       auto asset_symbol_itr = asset_indx.find( prefix );
       FC_ASSERT( asset_symbol_itr != asset_indx.end(), "Sub-asset ${s} may only be created if ${p} exists",
                  ("s",op.symbol)("p",prefix) );
-      if( db().has_hardfork( BTCM_HARDFORK_0_1 ) && (asset_symbol_itr->options.flags & hashtag) )
+      if( hf_0_1 && prefix == "NFT" )
+         ; // anyone can create
+      else if( hf_0_1 && (asset_symbol_itr->options.flags & hashtag) )
       {
 	 account_id_type holder = db().get_nft_holder( *asset_symbol_itr );
 	 if( asset_symbol_itr->options.flags & allow_subasset_creation )
@@ -97,7 +100,7 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
                     ("s",op.symbol)("p",prefix) );
    }
 
-   if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
+   if( hf_0_1 )
    {
       if( (op.common_options.flags & hashtag) || (op.common_options.issuer_permissions & hashtag) )
       {
@@ -117,20 +120,29 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
       }
    }
 
-   if( db().has_hardfork( BTCM_HARDFORK_0_1 ) )
+   if( hf_0_1 )
    {
       db().adjust_balance( issuer, -op.fee );
       db().adjust_balance( db().get_treasury_account(), treasury_fee );
    }
    else
       db().pay_fee( issuer, op.fee );
-   db().create<asset_object>( [&issuer,&op]( asset_object& a ) {
+   const auto& new_asset = db().create<asset_object>( [&issuer,&op,hf_0_1]( asset_object& a ) {
       a.issuer = issuer.id;
       a.symbol_string = op.symbol;
       a.precision = op.precision;
       a.options = op.common_options;
-      a.current_supply = 0;
+      a.current_supply = hf_0_1 ? a.options.max_supply : 0;
    });
+   if( hf_0_1 )
+   {
+      asset supply( new_asset.options.max_supply, new_asset.id );
+      db().adjust_balance( issuer, supply );
+      asset_issue_operation issue;
+      issue.issuer = issue.issue_to_account = issuer.name;
+      issue.asset_to_issue = supply;
+      db().push_applied_operation( issue );
+   }
 
    return; 
 } FC_CAPTURE_AND_RETHROW( (op) ) }
