@@ -1,0 +1,6 @@
+#ifndef BTCM_HARDFORK_0_1
+#define BTCM_HARDFORK_0_1 1
+// Testnet hardfork: 2021-05-27T15:00Z
+#define BTCM_HARDFORK_0_1_TIME 1622127600
+#define BTCM_HARDFORK_0_1_VERSION hardfork_version( 0, 1 )
+#endif

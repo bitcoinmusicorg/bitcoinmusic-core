@@ -783,12 +783,8 @@ BOOST_AUTO_TEST_CASE( asset_holders )
    trx.set_expiration( db.head_block_time() + BTCM_MAX_TIME_UNTIL_EXPIRATION );
 
    {
-      convert_operation cop;
-      cop.owner = "federation";
-      cop.amount = asset(BTCM_ASSET_CREATION_FEE, BTCM_SYMBOL);
-      trx.operations.emplace_back(std::move(cop));
       asset_create_operation aco;
-      aco.fee = asset(BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL);
+      aco.fee = asset(BTCM_ASSET_CREATION_FEE_0_1, BTCM_SYMBOL);
       aco.issuer = "federation";
       aco.symbol = "BTS";
       aco.precision = 5;
@@ -800,8 +796,19 @@ BOOST_AUTO_TEST_CASE( asset_holders )
    }
 
    const asset_object& bts = db.get_asset("BTS");
-   BOOST_CHECK_EQUAL(0, bts.current_supply.value);
+   BOOST_CHECK_EQUAL(bts.options.max_supply.value, bts.current_supply.value);
 
+   {
+      asset_reserve_operation aro;
+      aro.payer = "federation";
+      aro.amount_to_reserve = bts.amount( bts.options.max_supply );
+      trx.operations.emplace_back(std::move(aro));
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+   }
+
+   BOOST_CHECK_EQUAL(0, bts.current_supply.value);
    BOOST_CHECK(db_api.get_asset_holders(bts.id).empty());
 
    {

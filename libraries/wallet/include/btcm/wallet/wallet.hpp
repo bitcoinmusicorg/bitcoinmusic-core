@@ -886,10 +886,11 @@ class wallet_api
        * @param description Description
        * @param precision how many decimals the asset should support
        * @param max_supply Maximum supply (in satoshis!)
+       * @param flags a bitset of flags (1 = hashtag, 2 = allow_subasset_creation)
        * @param broadcast Broadcast the transaction?
        */
       annotated_signed_transaction create_asset(string issuer, string asset_name, string description,
-                                                uint8_t precision, uint64_t max_supply, bool broadcast);
+                                                uint8_t precision, uint64_t max_supply, uint16_t flags, bool broadcast);
       
       /**
        * Issue asset to an account
@@ -915,9 +916,11 @@ class wallet_api
        * @param description Description
        * @param max_supply Maximum supply
        * @param new_issuer Transfer asset to new issuer
+       * @param flags a bitset of flags (1 = hashtag, 2 = allow_subasset_creation)
        * @param broadcast Broadcast the transaction?
        */      
-      annotated_signed_transaction update_asset(string asset_name, string description, uint64_t max_supply, string new_issuer, bool broadcast);
+      annotated_signed_transaction update_asset(string asset_name, string description, uint64_t max_supply,
+                                                string new_issuer, uint16_t flags, bool broadcast);
 
       /**
        * Get content submitted by given account
