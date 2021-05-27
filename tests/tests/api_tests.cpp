@@ -791,8 +791,19 @@ BOOST_AUTO_TEST_CASE( asset_holders )
    }
 
    const asset_object& bts = db.get_asset("BTS");
-   BOOST_CHECK_EQUAL(0, bts.current_supply.value);
+   BOOST_CHECK_EQUAL(bts.options.max_supply.value, bts.current_supply.value);
 
+   {
+      asset_reserve_operation aro;
+      aro.payer = "federation";
+      aro.amount_to_reserve = bts.amount( bts.options.max_supply );
+      trx.operations.emplace_back(std::move(aro));
+      sign(trx, federation_private_key);
+      PUSH_TX(db, trx);
+      trx.clear();
+   }
+
+   BOOST_CHECK_EQUAL(0, bts.current_supply.value);
    BOOST_CHECK(db_api.get_asset_holders(bts.id).empty());
 
    {

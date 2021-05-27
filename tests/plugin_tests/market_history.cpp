@@ -385,15 +385,15 @@ BOOST_AUTO_TEST_CASE( api_test )
 
    for( const auto& acct : { "alice", "bob" } )
    {
-      asset_issue_operation aio;
-      aio.issuer = "federation";
-      aio.issue_to_account = acct;
-      aio.asset_to_issue = bts.amount_from_string("100000");
-      trx.operations.emplace_back(aio);
-      aio.asset_to_issue = btc.amount_from_string("1000");
-      trx.operations.emplace_back(aio);
-      aio.asset_to_issue = eth.amount_from_string("10000");
-      trx.operations.emplace_back(aio);
+      transfer_operation to;
+      to.from = "federation";
+      to.to = acct;
+      to.amount = bts.amount_from_string("100000");
+      trx.operations.emplace_back(to);
+      to.amount = btc.amount_from_string("1000");
+      trx.operations.emplace_back(to);
+      to.amount = eth.amount_from_string("10000");
+      trx.operations.emplace_back(to);
    }
    sign(trx, federation_private_key);
    PUSH_TX(db, trx);
