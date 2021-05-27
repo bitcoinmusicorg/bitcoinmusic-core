@@ -1199,7 +1199,6 @@ public:
       auto issuer = get_account_from_id(asset_obj->issuer);
       
       asset_reserve_operation reserve_op;
-      reserve_op.issuer = issuer->name;
       reserve_op.amount_to_reserve = asset_obj->amount_from_string( amount );
       reserve_op.payer = from_account;
 
