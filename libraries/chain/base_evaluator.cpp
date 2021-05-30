@@ -31,8 +31,8 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
 {
    db().get_account( o.owner ); // verify owner exists
 
-   FC_ASSERT( o.url.size() <= BTCM_MAX_WITNESS_URL_LENGTH ); // TODO: move to validate after HF
-
+   if( db().has_hardfork( BTCM_HARDFORK_0_1 ) ) // testnet
+      FC_ASSERT( o.props.streaming_platform_update_fee.amount >= BTCM_MIN_STREAMING_PLATFORM_CREATION_FEE);
 
    const auto& by_witness_name_idx = db().get_index_type< witness_index >().indices().get< by_name >();
    auto wit_itr = by_witness_name_idx.find( o.owner );

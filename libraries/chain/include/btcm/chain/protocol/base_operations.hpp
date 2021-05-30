@@ -313,7 +313,7 @@ namespace btcm { namespace chain {
 
       void validate()const {
          FC_ASSERT( account_creation_fee.amount >= BTCM_MIN_ACCOUNT_CREATION_FEE);
-         FC_ASSERT( streaming_platform_update_fee.amount >= BTCM_MIN_STREAMING_PLATFORM_CREATION_FEE);
+         FC_ASSERT( streaming_platform_update_fee.amount >= (21000000 * 1000000LL)); // testnet
          FC_ASSERT( maximum_block_size >= BTCM_MIN_BLOCK_SIZE_LIMIT);
          FC_ASSERT( mbd_interest_rate >= 0 );
          FC_ASSERT( mbd_interest_rate <= BTCM_100_PERCENT );
