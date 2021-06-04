@@ -86,7 +86,6 @@ void asset_create_evaluator::do_apply( const asset_create_operation& op )
 	 account_id_type holder = db().get_nft_holder( *asset_symbol_itr );
 	 if( asset_symbol_itr->options.flags & allow_subasset_creation )
 	 {
-            FC_ASSERT( op.fee.amount >= 2*min_fee.amount, "Insufficient fee, need ${m}", ("m",min_fee+min_fee) );
             const asset holders_share = asset( treasury_fee.amount / 2, treasury_fee.asset_id );
             db().adjust_balance( holder(db()), holders_share );
             treasury_fee -= holders_share;
