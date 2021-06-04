@@ -920,16 +920,16 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
       PUSH_TX(db, trx);
       trx.clear();
 
-      // bob still can't create subasset with normal fee
-      aco.fee = asset(BTCM_SUBASSET_CREATION_FEE, BTCM_SYMBOL);
+      // bob still can't create subasset with less than normal fee
+      aco.fee = asset(BTCM_SUBASSET_CREATION_FEE - 1, BTCM_SYMBOL);
       aco.symbol = "FASHION.SHIRT";
       trx.operations.emplace_back(aco);
       sign(trx, bob_private_key);
       BOOST_CHECK_THROW( PUSH_TX(db, trx), fc::assert_exception );
       trx.clear();
 
-      // ...but with twice the normal fee it works
-      aco.fee = asset(2*BTCM_SUBASSET_CREATION_FEE, BTCM_SYMBOL);
+      // ...but with the normal fee it works
+      aco.fee = asset(BTCM_SUBASSET_CREATION_FEE, BTCM_SYMBOL);
       aco.symbol = "FASHION.SHIRT";
       trx.operations.emplace_back(aco);
       sign(trx, bob_private_key);
@@ -937,12 +937,12 @@ BOOST_FIXTURE_TEST_CASE( allow_subasset_flag, database_fixture )
       trx.clear();
    }
 
-   BOOST_CHECK_EQUAL( 2*BTCM_ASSET_CREATION_FEE_0_1 + BTCM_SUBASSET_CREATION_FEE,
+   BOOST_CHECK_EQUAL( 2*BTCM_ASSET_CREATION_FEE_0_1 + BTCM_SUBASSET_CREATION_FEE / 2,
                       _treasury.balance.amount.value );
    BOOST_CHECK_EQUAL( 0, _treasury.mbd_balance.amount.value );
-   BOOST_CHECK_EQUAL( 500000000 + BTCM_SUBASSET_CREATION_FEE, _alice.balance.amount.value );
+   BOOST_CHECK_EQUAL( 500000000 + BTCM_SUBASSET_CREATION_FEE / 2, _alice.balance.amount.value );
    BOOST_CHECK_EQUAL( 0, _alice.mbd_balance.amount.value );
-   BOOST_CHECK_EQUAL( 500000000 - 2*BTCM_SUBASSET_CREATION_FEE, _bob.balance.amount.value );
+   BOOST_CHECK_EQUAL( 500000000 - BTCM_SUBASSET_CREATION_FEE, _bob.balance.amount.value );
    BOOST_CHECK_EQUAL( 0, _bob.mbd_balance.amount.value );
 
 } FC_LOG_AND_RETHROW() }

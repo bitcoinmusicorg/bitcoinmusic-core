@@ -129,6 +129,9 @@ void database::open( const fc::path& data_dir, const genesis_state_type& initial
                     ("last_block->id", last_block)("head_block_id",head_block_num()) );
          reindex( data_dir );
       }
+      try {
+         _treasury_account = &get_account( BTCM_TREASURY_ACCOUNT );
+      } catch (const fc::assert_exception& ignore) {} // not defined yet
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
 }
