@@ -130,7 +130,7 @@ class market_history_api
       /**
        * @brief Returns the bucket seconds being tracked by the plugin.
        */
-      const chain::flat_set< uint32_t >& get_market_history_buckets() const;
+      chain::flat_set< uint32_t > get_market_history_buckets() const;
 
    private:
       std::shared_ptr< detail::market_history_api_impl > my;
