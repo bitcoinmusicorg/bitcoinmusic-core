@@ -33,17 +33,12 @@ namespace btcm { namespace chain {
 
    enum asset_issuer_permission_flags
    {
-      charge_market_fee    = 0x01, /**< an issuer-specified percentage of all market trades in this asset is paid to the issuer */
-      white_list           = 0x02, /**< accounts must be whitelisted in order to hold this asset */
-      override_authority   = 0x04, /**< issuer may transfer asset back to himself */
-      transfer_restricted  = 0x08, /**< require the issuer to be one party to every transfer */
-      disable_force_settle = 0x10, /**< disable force settling */
-      global_settle        = 0x20, /**< allow the bitasset issuer to force a global settling -- this may be set in permissions, but not flags */
-      disable_confidential = 0x40, /**< allow the asset to be used with confidential transactions */
+      hashtag = 0x01, /**< allows token holder to create sub-asset and enforces max supply = 1 and precision = 0 */
+      allow_subasset_creation = 0x02, /**< allows anyone to create subassets for twice the normal fee, requires hashtag */
    };
 
-   const static uint32_t ASSET_ISSUER_PERMISSION_MASK = charge_market_fee|white_list|override_authority|transfer_restricted|disable_force_settle|global_settle|disable_confidential;
-   const static uint32_t UIA_ASSET_ISSUER_PERMISSION_MASK = charge_market_fee|transfer_restricted|disable_confidential;
+   const static uint32_t ALLOWED_ASSET_PERMISSIONS = 3;
+   const static uint32_t DEFAULT_UIA_PERMISSIONS = 0;
 
    /**
     * @brief The asset_options struct contains options available on all assets in the network
@@ -62,7 +57,7 @@ namespace btcm { namespace chain {
       share_type max_market_fee = BTCM_MAX_SHARE_SUPPLY;
 
       /// The flags which the issuer has permission to update. See @ref asset_issuer_permission_flags
-      uint16_t issuer_permissions = UIA_ASSET_ISSUER_PERMISSION_MASK;
+      uint16_t issuer_permissions = DEFAULT_UIA_PERMISSIONS;
       /// The currently active flags on this permission. See @ref asset_issuer_permission_flags
       uint16_t flags = 0;
 
@@ -92,10 +87,6 @@ namespace btcm { namespace chain {
       uint8_t                 precision = BTCM_ASSET_PRECISION;
 
       /// Options common to all assets.
-      ///
-      /// @note common_options.core_exchange_rate technically needs to store the asset ID of this new asset. Since this
-      /// ID is not known at the time this operation is created, create this price as though the new asset has instance
-      /// ID 1, and the chain will overwrite it with the new asset's ID.
       asset_options              common_options;
       extensions_type extensions;
 
@@ -162,14 +153,12 @@ namespace btcm { namespace chain {
     */
    struct asset_reserve_operation : public base_operation
    {
-
-      string            issuer;
       string            payer;
       asset             amount_to_reserve;
       extensions_type   extensions;
 
       void              validate()const;
-      void get_required_active_authorities(  flat_set<string>& a )const{ a.insert(issuer); }
+      void get_required_active_authorities(  flat_set<string>& a )const{ a.insert(payer); }
    };
 
 } } // btcm::chain
@@ -204,5 +193,5 @@ FC_REFLECT( btcm::chain::asset_update_operation,
 FC_REFLECT( btcm::chain::asset_issue_operation,
             (issuer)(asset_to_issue)(issue_to_account)(extensions) )
 FC_REFLECT( btcm::chain::asset_reserve_operation,
-            (issuer)(payer)(amount_to_reserve)(extensions) )
+            (payer)(amount_to_reserve)(extensions) )
 

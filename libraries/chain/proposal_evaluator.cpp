@@ -44,6 +44,37 @@ namespace impl {
          template<typename T>
          void operator()( const T& v )const { /* do nothing by default */ }
 
+         void operator()( const btcm::chain::asset_create_operation& op )const {
+            if( _db.has_hardfork( BTCM_HARDFORK_0_1 ) )
+            {
+               FC_ASSERT( !(op.common_options.issuer_permissions & ~ALLOWED_ASSET_PERMISSIONS),
+                          "Disallowed permissions detected!" );
+               FC_ASSERT( !(op.common_options.flags & ~ALLOWED_ASSET_PERMISSIONS),
+                          "Disallowed flags detected!" );
+               if( (op.common_options.flags & hashtag) || (op.common_options.issuer_permissions & hashtag) )
+               {
+                  FC_ASSERT( op.precision == 0 && op.common_options.max_supply == 1,
+                             "hashtag flag requires precision 0 and max_supply 1" );
+                  FC_ASSERT( (op.common_options.flags & hashtag) || !(op.common_options.flags & allow_subasset_creation),
+                             "allow_subasset_creation flag requires hashtag" );
+                  FC_ASSERT( (op.common_options.issuer_permissions & hashtag)
+                             || !(op.common_options.issuer_permissions & allow_subasset_creation),
+                             "allow_subasset_creation permission requires hashtag" );
+               }
+               else
+               {
+                  FC_ASSERT( !(op.common_options.flags & allow_subasset_creation)
+                             && !(op.common_options.issuer_permissions & allow_subasset_creation),
+                             "allow_subasset_creation flag/permission requires hashtag" );
+               }
+               return;
+            }
+         }
+
+         void operator()( const btcm::chain::asset_update_operation& v )const {
+            FC_ASSERT( _db.has_hardfork( BTCM_HARDFORK_0_1 ), "asset_update not allowed yet!" );
+         }
+
          void operator()( const btcm::chain::proposal_create_operation& v )const {
             bool proposal_update_seen = false;
             for (const op_wrapper &op : v.proposed_ops)
@@ -240,7 +271,7 @@ void proposal_update_evaluator::do_apply(const proposal_update_operation& o)
    // Potential optimization: if _executed_proposal is true, we can skip the modify step and make push_proposal skip
    // signature checks. This isn't done now because I just wrote all the proposals code, and I'm not yet 100% sure the
    // required approvals are sufficient to authorize the transaction.
-   d.modify(*_proposal, [&o, &d](proposal_object& p) {
+   d.modify(*_proposal, [&o](proposal_object& p) {
       p.available_active_approvals.insert(o.active_approvals_to_add.begin(), o.active_approvals_to_add.end());
       p.available_owner_approvals.insert(o.owner_approvals_to_add.begin(), o.owner_approvals_to_add.end());
       for( const string& id : o.active_approvals_to_remove )

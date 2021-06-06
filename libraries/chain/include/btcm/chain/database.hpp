@@ -275,6 +275,8 @@ namespace btcm { namespace chain {
          asset       get_balance( const account_object& a, asset_id_type symbol )const;
          asset       get_balance( const string& aname, asset_id_type symbol )const { return get_balance( get_account(aname), symbol ); }
 
+         account_id_type get_nft_holder( const asset_object& asset )const;
+
          uint64_t    get_scoring(const account_object& ao ) const;
          uint64_t    get_scoring(const content_object& co ) const;
          void recalculate_score(const account_object& ao );
@@ -394,6 +396,8 @@ namespace btcm { namespace chain {
           * @}
           */
 
+         const account_object& get_treasury_account()const { return *_treasury_account; }
+
    protected:
          //Mark pop_undo() as protected -- we do not want outside calling pop_undo(); it should call pop_block() instead
          void pop_undo() { object_database::pop_undo(); }
@@ -481,5 +485,8 @@ namespace btcm { namespace chain {
 
          // Counts nested proposal updates
          uint32_t                          _push_proposal_nesting_depth = 0;
+
+         // after hardfork_0_1
+         const account_object* _treasury_account;
    };
 } }

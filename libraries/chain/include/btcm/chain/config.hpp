@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#define BTCM_BLOCKCHAIN_VERSION              ( version(0, 0, 1) )
+#define BTCM_BLOCKCHAIN_VERSION              ( version(0, 1, 0) )
 #define BTCM_BLOCKCHAIN_HARDFORK_VERSION     ( hardfork_version( BTCM_BLOCKCHAIN_VERSION ) )
 
 #define BTCM_INIT_PUBLIC_KEY_STR             "BTCM7kcBTQqFo8Lb7nttdjAY4hveRWM2yNk4FDjvECubdaPPjUCiLZ"
@@ -44,9 +44,9 @@
 #define BTCM_MAX_VOTED_STREAMING_PLATFORMS      10
 #define BTCM_MIN_STREAMING_PLATFORM_CREATION_FEE    (100000000 * 1000000LL)
 #define BTCM_ASSET_CREATION_FEE                     (10 * 1000000)
+#define BTCM_ASSET_CREATION_FEE_0_1                 (100 * 1000000)
 #define BTCM_SUBASSET_CREATION_FEE                  (10 * 1000000)
 
-#define BTCM_HARDFORK_REQUIRED_WITNESSES     17 // 17 of the 20 dpos witnesses (19 elected and 1 virtual time) required for hardfork. This guarantees 75% participation on all subsequent rounds.
 #define BTCM_MAX_TIME_UNTIL_EXPIRATION       (60*60) // seconds,  aka: 1 hour
 #define BTCM_MAX_MEMO_SIZE                   2048
 #define BTCM_MAX_PROXY_RECURSION_DEPTH       4
@@ -177,7 +177,7 @@
 #define BTCM_MAX_ASSET_WHITELIST_AUTHORITIES 10
 #define BTCM_MAX_URL_LENGTH                  127
 
-#define GRAPHENE_CURRENT_DB_VERSION          "BTCM_0_1_0"
+#define GRAPHENE_CURRENT_DB_VERSION          "BTCM_0.1.0"
 
 #define BTCM_IRREVERSIBLE_THRESHOLD          (51 * BTCM_1_PERCENT)
 
@@ -191,6 +191,8 @@
 #define BTCM_NULL_ACCOUNT                    "null"
 /// Represents the canonical account with WILDCARD authority (anybody can access funds in temp account)
 #define BTCM_TEMP_ACCOUNT                    "temp"
+/// Represents the canonical account to receive asset_create fees (from hardfork 0.1 on)
+#define BTCM_TREASURY_ACCOUNT                "treasury"
 /// Represents the canonical account for specifying you will vote for directly (as opposed to a proxy)
 #define BTCM_PROXY_TO_SELF_ACCOUNT           ""
 ///@}

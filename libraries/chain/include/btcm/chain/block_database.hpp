@@ -3,7 +3,7 @@
 #include <btcm/chain/protocol/block.hpp>
 
 namespace btcm { namespace chain {
-   class index_entry;
+   struct index_entry;
 
    class block_database
    {

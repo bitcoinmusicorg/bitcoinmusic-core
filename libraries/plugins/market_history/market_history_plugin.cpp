@@ -3,6 +3,10 @@
 #include <btcm/chain/database.hpp>
 #include <btcm/chain/history_object.hpp>
 
+#include "normalized_ids.hxx"
+
+#include <memory>
+
 namespace btcm { namespace market_history {
 
 namespace detail {
@@ -22,127 +26,83 @@ class market_history_plugin_impl
 
       market_history_plugin& _self;
       flat_set<uint32_t>     _tracked_buckets = { 15, 60, 300, 3600, 86400 };
-      int32_t                _maximum_history_per_bucket_size = 5760;
+      uint32_t               _maximum_history_per_bucket_size = 5760; // 1 day at 15s, 4 days at 1m
+      fc::microseconds       _max_age;
+      boost::signals2::scoped_connection _db_conn;
 };
+
+static void update_bucket( bucket_object& bucket, const fill_order_operation& op )
+{
+   const price order_price = op.current_pays.asset_id == bucket.asset_a ? op.current_pays / op.open_pays
+                                                                        : op.open_pays / op.current_pays;
+   bucket.close_a = order_price.base.amount;
+   bucket.close_b = order_price.quote.amount;
+   if( bucket.high_a == 0 || bucket.high() < order_price ) {
+      bucket.high_a = order_price.base.amount;
+      bucket.high_b = order_price.quote.amount;
+   }
+   if( bucket.low_a == 0 || bucket.low() > order_price ) {
+      bucket.low_a = order_price.base.amount;
+      bucket.low_b = order_price.quote.amount;
+   }
+   bucket.volume_a += order_price.base.amount;
+   bucket.volume_b += order_price.quote.amount;
+}
 
 void market_history_plugin_impl::update_market_histories( const operation_object& o )
 {
    if( o.op.which() == operation::tag< fill_order_operation >::value )
    {
-      fill_order_operation op = o.op.get< fill_order_operation >();
+      const auto& op = o.op.get< fill_order_operation >();
 
       auto& db = _self.database();
       const auto& bucket_idx = db.get_index_type< bucket_index >().indices().get< by_bucket >();
 
-      db.create< order_history_object >( [&]( order_history_object& ho )
+      db.create< order_history_object >( [&db,&op]( order_history_object& ho )
       {
          ho.time = db.head_block_time();
-         ho.op = op;
+         ho.taker_paid = op.current_pays;
+         ho.maker_paid = op.open_pays;
       });
 
       if( !_maximum_history_per_bucket_size ) return;
-      if( !_tracked_buckets.size() ) return;
+      if( db.head_block_time() < fc::time_point::now() - _max_age ) return;
+      if( op.current_pays.amount == 0 || op.open_pays.amount == 0 ) return;
 
       for( auto bucket : _tracked_buckets )
       {
-         auto cutoff = db.head_block_time() - fc::seconds( bucket * _maximum_history_per_bucket_size );
-
          auto open = fc::time_point_sec( ( db.head_block_time().sec_since_epoch() / bucket ) * bucket );
          auto seconds = bucket;
 
-         auto itr = bucket_idx.find( boost::make_tuple( seconds, open ) );
+         asset_id_type asset_a = op.current_pays.asset_id;
+         asset_id_type asset_b = op.open_pays.asset_id;
+         normalize_asset_ids( asset_a, asset_b );
+
+         auto itr = bucket_idx.find( boost::make_tuple( asset_a, asset_b, seconds, open ) );
          if( itr == bucket_idx.end() )
          {
-            db.create< bucket_object >( [&]( bucket_object &b )
+            db.create< bucket_object >( [&op, open, bucket, asset_a, asset_b]( bucket_object &b )
             {
-               b.open = open;
+               b.start = open;
                b.seconds = bucket;
-
-               if( op.open_pays.asset_id == BTCM_SYMBOL )
-               {
-                  b.high_btcm = op.open_pays.amount;
-                  b.high_mbd = op.current_pays.amount;
-                  b.low_btcm = op.open_pays.amount;
-                  b.low_mbd = op.current_pays.amount;
-                  b.open_btcm = op.open_pays.amount;
-                  b.open_mbd = op.current_pays.amount;
-                  b.close_btcm = op.open_pays.amount;
-                  b.close_mbd = op.current_pays.amount;
-                  b.btcm_volume = op.open_pays.amount;
-                  b.mbd_volume = op.current_pays.amount;
-               }
-               else
-               {
-                  b.high_btcm = op.current_pays.amount;
-                  b.high_mbd = op.open_pays.amount;
-                  b.low_btcm = op.current_pays.amount;
-                  b.low_mbd = op.open_pays.amount;
-                  b.open_btcm = op.current_pays.amount;
-                  b.open_mbd = op.open_pays.amount;
-                  b.close_btcm = op.current_pays.amount;
-                  b.close_mbd = op.open_pays.amount;
-                  b.btcm_volume = op.current_pays.amount;
-                  b.mbd_volume = op.open_pays.amount;
-               }
-            });
-         }
-         else
-         {
-            db.modify( *itr, [&]( bucket_object& b )
-            {
-               if( op.open_pays.asset_id == BTCM_SYMBOL )
-               {
-                  b.btcm_volume += op.open_pays.amount;
-                  b.mbd_volume += op.current_pays.amount;
-                  b.close_btcm = op.open_pays.amount;
-                  b.close_mbd = op.current_pays.amount;
-
-                  if( b.high() < price( op.current_pays, op.open_pays ) )
-                  {
-                     b.high_btcm = op.open_pays.amount;
-                     b.high_mbd = op.current_pays.amount;
-                  }
-
-                  if( b.low() > price( op.current_pays, op.open_pays ) )
-                  {
-                     b.low_btcm = op.open_pays.amount;
-                     b.low_mbd = op.current_pays.amount;
-                  }
-               }
-               else
-               {
-                  b.btcm_volume += op.current_pays.amount;
-                  b.mbd_volume += op.open_pays.amount;
-                  b.close_btcm = op.current_pays.amount;
-                  b.close_mbd = op.open_pays.amount;
-
-                  if( b.high() < price( op.open_pays, op.current_pays ) )
-                  {
-                     b.high_btcm = op.current_pays.amount;
-                     b.high_mbd = op.open_pays.amount;
-                  }
-
-                  if( b.low() > price( op.open_pays, op.current_pays ) )
-                  {
-                     b.low_btcm = op.current_pays.amount;
-                     b.low_mbd = op.open_pays.amount;
-                  }
-               }
+               b.asset_a = asset_a;
+               b.asset_b = asset_b;
+               update_bucket(b, op);
+               b.open_a = b.close_a;
+               b.open_b = b.close_b;
             });
 
-            if( _maximum_history_per_bucket_size > 0 )
+            auto cutoff = db.head_block_time() - fc::seconds( bucket * _maximum_history_per_bucket_size );
+            itr = bucket_idx.lower_bound( boost::make_tuple( asset_a, asset_b, seconds, fc::time_point_sec(0) ) );
+            while( itr != bucket_idx.end() && itr->seconds == seconds && itr->start < cutoff )
             {
-               open = fc::time_point_sec();
-               itr = bucket_idx.lower_bound( boost::make_tuple( seconds, open ) );
-
-               while( itr->seconds == seconds && itr->open < cutoff )
-               {
-                  auto old_itr = itr;
-                  ++itr;
-                  db.remove( *old_itr );
-               }
+               auto old_itr = itr;
+               ++itr;
+               db.remove( *old_itr );
             }
          }
+         else
+            db.modify( *itr, [&op]( bucket_object& b ) { update_bucket(b, op); });
       }
    }
 }
@@ -171,7 +131,8 @@ void market_history_plugin::plugin_initialize( const boost::program_options::var
 {
    try
    {
-      database().pre_apply_operation.connect( [this]( const operation_object& o ){ _my->update_market_histories( o ); } );
+      _my->_db_conn = database().pre_apply_operation.connect(
+             std::bind( &detail::market_history_plugin_impl::update_market_histories, _my.get(), std::placeholders::_1 ) );
       database().add_index< primary_index< bucket_index > >();
       database().add_index< primary_index< order_history_index > >();
 
@@ -179,9 +140,13 @@ void market_history_plugin::plugin_initialize( const boost::program_options::var
       {
          const std::string& buckets = options["bucket-size"].as< string >();
          _my->_tracked_buckets = fc::json::from_string( buckets ).as< flat_set< uint32_t > >( 2 );
+         FC_ASSERT( _my->_tracked_buckets.empty() || *_my->_tracked_buckets.begin() > 0,
+                    "Invalid bucket size, must be greater than 0!" );
       }
       if( options.count("history-per-size" ) )
          _my->_maximum_history_per_bucket_size = options["history-per-size"].as< uint32_t >();
+      _my->_max_age = fc::seconds( _my->_tracked_buckets.empty() ? 0
+                                     : _my->_maximum_history_per_bucket_size * *_my->_tracked_buckets.rbegin() );
    } FC_CAPTURE_AND_RETHROW()
 }
 
@@ -190,7 +155,7 @@ void market_history_plugin::plugin_startup()
    app().register_api_factory< market_history_api >( "market_history_api" );
 }
 
-flat_set< uint32_t > market_history_plugin::get_tracked_buckets() const
+const flat_set< uint32_t >& market_history_plugin::get_tracked_buckets() const
 {
    return _my->_tracked_buckets;
 }

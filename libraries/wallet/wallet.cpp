@@ -327,7 +327,7 @@ public:
 #endif
       result["build"] = os + " " + bitness;
 
-      return result;
+      return variant_object(std::move(result));
    }
 
    vector<proposal_object> get_proposed_transactions( string id )const
@@ -1085,7 +1085,7 @@ public:
    }
 
    annotated_signed_transaction create_asset(string issuer, string asset_name, string description,
-                                             uint8_t precision, uint64_t max_supply, bool broadcast)
+                                             uint8_t precision, uint64_t max_supply, uint16_t flags, bool broadcast)
    {
       try {
          account_object issuer_account = get_account( issuer );
@@ -1093,15 +1093,34 @@ public:
          auto feed = _remote_db->get_feed_history().actual_median_history;
          FC_ASSERT(!feed.is_null(), "No feed price, can't create assets");
          asset_create_operation create_op;
-         create_op.fee = asset(asset_name.find( '.' ) != std::string::npos
-                                    ? BTCM_SUBASSET_CREATION_FEE : BTCM_ASSET_CREATION_FEE,
-                                XUSD_SYMBOL);
+         auto version = _remote_db->get_hardfork_version();
+         auto dot = asset_name.find( '.' );
+         if( dot != std::string::npos )
+         {
+            create_op.fee = asset( BTCM_SUBASSET_CREATION_FEE, XUSD_SYMBOL );
+            if( version >= BTCM_HARDFORK_0_1_VERSION )
+            {
+	       if( asset_name.substr( 0, dot ) != "NFT" )
+	       {
+                  auto parent = find_asset( asset_name.substr( 0, dot ) );
+                  FC_ASSERT( parent, "Parent asset not found!" );
+	          if( parent->options.flags & chain::allow_subasset_creation )
+                     create_op.fee = asset( 2*BTCM_SUBASSET_CREATION_FEE, XUSD_SYMBOL );
+	       }
+               create_op.fee = create_op.fee * feed;
+            }
+         }
+	 else if( version >= BTCM_HARDFORK_0_1_VERSION )
+            create_op.fee = asset( BTCM_ASSET_CREATION_FEE_0_1, XUSD_SYMBOL ) * feed;
+         else
+            create_op.fee = asset( BTCM_ASSET_CREATION_FEE, XUSD_SYMBOL );
          create_op.issuer = issuer_account.name;
          create_op.symbol = std::move(asset_name);
          create_op.precision = precision;
          create_op.common_options.description = std::move(description);
          create_op.common_options.max_supply=max_supply;
-         create_op.common_options.flags=override_authority|disable_confidential;
+         create_op.common_options.issuer_permissions = flags | ((flags & hashtag) ? allow_subasset_creation : 0);
+         create_op.common_options.flags = flags;
          signed_transaction tx;
          tx.operations.push_back( create_op );
          tx.validate();
@@ -1110,7 +1129,8 @@ public:
    }
 
 
-   annotated_signed_transaction update_asset(string asset_name, string description, uint64_t max_supply, string new_issuer, bool broadcast)
+   annotated_signed_transaction update_asset(string asset_name, string description, uint64_t max_supply,
+                                             string new_issuer, uint16_t flags, bool broadcast)
    {
       try {
          optional<asset_object> asset_to_update = find_asset(asset_name);
@@ -1118,16 +1138,30 @@ public:
             FC_THROW("No asset with that symbol exists!");
          
          asset_update_operation update_op;
-         update_op.issuer = get_account_from_id(asset_to_update->issuer)->name;
-         update_op.new_options.flags=override_authority|disable_confidential;
+         if( asset_to_update->options.flags & chain::hashtag )
+         {
+            auto holder = _remote_db->get_asset_holders( asset_to_update->id );
+            FC_ASSERT( holder.size() == 1, "Expected exactly one asset holder!" );
+            update_op.issuer = holder.begin()->first;
+         }
+         else
+            update_op.issuer = get_account_from_id(asset_to_update->issuer)->name;
          update_op.asset_to_update = asset_to_update->id;
+         update_op.new_options = asset_to_update->options;
+         FC_ASSERT( max_supply == 0, "Can't update max supply" );
+         if( max_supply > 0 )
+            update_op.new_options.max_supply = max_supply;
+         FC_ASSERT( (update_op.new_options.flags ^ flags) == chain::allow_subasset_creation,
+                    "Can only toggle allow_subasset_creation flag!" );
+         update_op.new_options.flags = flags;
+         FC_ASSERT( new_issuer.length() == 0, "Can't update issuer" );
          if(new_issuer.length()>0){
             get_account( new_issuer );
             update_op.new_issuer = new_issuer;
          }
-         update_op.new_options.max_supply=max_supply;
+         FC_ASSERT( description.length() == 0, "Can't update description" );
          if(description.length()>0){
-            update_op.new_options.description=description;
+            update_op.new_options.description = description;
          }
 
          signed_transaction tx;
@@ -1165,7 +1199,6 @@ public:
       auto issuer = get_account_from_id(asset_obj->issuer);
       
       asset_reserve_operation reserve_op;
-      reserve_op.issuer = issuer->name;
       reserve_op.amount_to_reserve = asset_obj->amount_from_string( amount );
       reserve_op.payer = from_account;
 
@@ -2653,9 +2686,10 @@ uint64_t wallet_api::get_content_scoring( string content )
    return my->_remote_db->get_content_scoring(content);
 }
 
-annotated_signed_transaction wallet_api::create_asset(string issuer, string asset_name, string description, uint8_t precision, uint64_t max_supply, bool broadcast)
+annotated_signed_transaction wallet_api::create_asset(string issuer, string asset_name, string description,
+                                                      uint8_t precision, uint64_t max_supply, uint16_t flags, bool broadcast)
 {
-   return my->create_asset(issuer, asset_name, description, precision, max_supply, broadcast);
+   return my->create_asset(issuer, asset_name, description, precision, max_supply, flags, broadcast);
 }
 
 annotated_signed_transaction wallet_api::issue_asset(string asset_name, string to_account, string amount, bool broadcast)
@@ -2668,9 +2702,10 @@ annotated_signed_transaction wallet_api::reserve_asset(string asset_name, string
    return my->reserve_asset(asset_name, from_account, amount, broadcast);
 }
 
-annotated_signed_transaction wallet_api::update_asset(string asset_name, string description, uint64_t max_supply, string new_issuer, bool broadcast)
+annotated_signed_transaction wallet_api::update_asset(string asset_name, string description, uint64_t max_supply,
+                                                      string new_issuer, uint16_t flags, bool broadcast)
 {
-   return my->update_asset(asset_name, description, max_supply, new_issuer, broadcast);
+   return my->update_asset(asset_name, description, max_supply, new_issuer, flags, broadcast);
 }
 
 optional<asset_object>  wallet_api::get_asset_details(string asset_name)

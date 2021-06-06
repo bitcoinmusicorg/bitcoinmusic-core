@@ -129,6 +129,9 @@ void database::open( const fc::path& data_dir, const genesis_state_type& initial
                     ("last_block->id", last_block)("head_block_id",head_block_num()) );
          reindex( data_dir );
       }
+      try {
+         _treasury_account = &get_account( BTCM_TREASURY_ACCOUNT );
+      } catch (const fc::assert_exception& ignore) {} // not defined yet
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
 }
@@ -1214,7 +1217,7 @@ void database::update_witness_schedule4()
    {
       witnesses_on_version += ver_itr->second;
 
-      if( witnesses_on_version >= BTCM_HARDFORK_REQUIRED_WITNESSES )
+      if( witnesses_on_version >= 2 * wso.current_shuffled_witnesses.size() / 3 + 1 )
       {
          majority_version = ver_itr->first;
          break;
@@ -1227,7 +1230,7 @@ void database::update_witness_schedule4()
 
    while( hf_itr != hardfork_version_votes.end() )
    {
-      if( hf_itr->second >= BTCM_HARDFORK_REQUIRED_WITNESSES )
+      if( hf_itr->second >= 2 * wso.current_shuffled_witnesses.size() / 3 + 1 )
       {
          modify( hardfork_property_id_type()( *this ), [&]( hardfork_property_object& hpo )
          {
@@ -2344,19 +2347,19 @@ void database::init_genesis( const genesis_state_type& initial_allocation )
       // Create blockchain accounts
       public_key_type      init_public_key(BTCM_INIT_PUBLIC_KEY);
 
-      create<account_object>([this](account_object& a)
+      create<account_object>([](account_object& a)
       {
          a.name = BTCM_MINER_ACCOUNT;
          a.owner.weight_threshold = 1;
          a.active.weight_threshold = 1;
       } );
-      create<account_object>([this](account_object& a)
+      create<account_object>([](account_object& a)
       {
          a.name = BTCM_NULL_ACCOUNT;
          a.owner.weight_threshold = 1;
          a.active.weight_threshold = 1;
       } );
-      create<account_object>([this](account_object& a)
+      create<account_object>([](account_object& a)
       {
          a.name = BTCM_TEMP_ACCOUNT;
          a.owner.weight_threshold = 0;
@@ -2479,8 +2482,8 @@ void database::init_genesis( const genesis_state_type& initial_allocation )
                string issuer_name = asset.issuer_name;
                a.issuer = get_account_id(issuer_name);
                a.options.max_supply = asset.max_supply;
-               a.options.flags = disable_confidential;
-               a.options.issuer_permissions = UIA_ASSET_ISSUER_PERMISSION_MASK;
+               a.options.flags = 0;
+               a.options.issuer_permissions = 0;
          });
       }
       //initial balances
@@ -2749,6 +2752,8 @@ try {
          if( fho.price_history.size() ) {
             std::deque<price> copy = fho.price_history;
             std::sort( copy.begin(), copy.end() ); /// todo: use nth_item
+            fho.previous_actual_median = fho.actual_median_history;
+            fho.previous_effective_median = fho.effective_median_history;
             fho.effective_median_history = fho.actual_median_history = copy[copy.size()/2];
 
             // This block limits the effective median price to force XUSD to remain at or
@@ -3411,10 +3416,22 @@ asset database::get_balance( const account_object& a, asset_id_type symbol )cons
    return itr->get_balance();
 }
 
+account_id_type database::get_nft_holder( const asset_object& asset )const
+{
+   FC_ASSERT( asset.precision == 0 && asset.options.max_supply == 1, "Not an NFT asset" );
+   const auto& index = get_index_type<account_balance_index>().indices().get<by_asset_balance>();
+   const auto itr = index.find( asset.id );
+   FC_ASSERT( itr != index.end() && itr->asset_type == asset.id, "Balance not found!" );
+   return itr->owner;
+}
+
 void database::init_hardforks()
 {
    _hardfork_times[ 0 ] = fc::time_point_sec( BTCM_GENESIS_TIME );
    _hardfork_versions[ 0 ] = hardfork_version( 0, 0 );
+   FC_ASSERT( BTCM_HARDFORK_0_1 == 1, "Invalid hardfork configuration" );
+   _hardfork_times[ BTCM_HARDFORK_0_1 ] = fc::time_point_sec( BTCM_HARDFORK_0_1_TIME );
+   _hardfork_versions[ BTCM_HARDFORK_0_1 ] = BTCM_HARDFORK_0_1_VERSION;
 
    const auto& hardforks = hardfork_property_id_type()( *this );
    FC_ASSERT( hardforks.last_hardfork <= BTCM_NUM_HARDFORKS, "Chain knows of more hardforks than configuration",
@@ -3490,6 +3507,11 @@ void database::apply_hardfork( uint32_t hardfork )
 
    switch( hardfork )
    {
+      case BTCM_HARDFORK_0_1:
+         _treasury_account = &get_account( BTCM_TREASURY_ACCOUNT );
+         for( const auto& asset : get_index_type<asset_index>().indices() )
+            modify( asset, [] (asset_object& a) { a.options.flags = a.options.issuer_permissions = 0; } );
+         break;
       default:
          break;
    }
