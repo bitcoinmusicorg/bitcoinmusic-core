@@ -251,7 +251,7 @@ std::vector< bucket_object > market_history_api::get_market_history( const std::
    return my->get_market_history( asset_a, asset_b, bucket_seconds, start, end );
 }
 
-const flat_set< uint32_t >& market_history_api::get_market_history_buckets() const
+flat_set< uint32_t > market_history_api::get_market_history_buckets() const
 {
    return my->get_market_history_buckets();
 }
